@@ -16,8 +16,16 @@ type Root struct {
 
 type Func struct {
 	FunctionName string   `@Ident`
-	LF           struct{} `"\n"?`
-	Expr         []*Expr  `"{" "\n"* (@@ "\n"*)* "}"`
+	Begin        struct{} `"\n"? "{" "\n"*`
+
+	FuncEntity []*FuncEntity `(@@ "\n"*)*`
+
+	End struct{} `"}"`
+}
+
+type FuncEntity struct {
+	Expr *Expr `( @@`
+	Sub  *Expr `| "{" "\n"* (@@ "\n"*)* "}")`
 }
 
 type Expr struct {
@@ -54,6 +62,7 @@ var (
 			{Name: "String", Pattern: `"`, Action: lexer.Push("StringRule")},
 			{Name: `Oper`, Pattern: `(-|\+|/|\*|%|=|==|!=|>=|<=|>|<)`, Action: nil},
 			{Name: "Call", Pattern: `\(`, Action: lexer.Push("CallRule")},
+			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			{Name: "FuncEnd", Pattern: `\}`, Action: lexer.Pop()},
 			lexer.Include("Common"),
 		},
@@ -81,8 +90,10 @@ func main() {
 	src := `
   Func
   {
+    {
+      e = f(g,func("h"))
+    }
     a = b(c,"d")
-    e = f(g,func("h"))
   }
   `
 
