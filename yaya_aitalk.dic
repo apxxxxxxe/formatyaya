@@ -2,14 +2,11 @@
 // ランダムトーク
 //******************************************************************************
 
-#define before after
-
 RandomTalk
 {
   UpdateUserRating
   lastanchor = ""
   lastresponce = systemuptime
-
   total_talk_count++
 
   SetBalloonSurfaceSakura

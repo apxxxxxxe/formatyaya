@@ -8,51 +8,45 @@ type Root struct {
 type RootEntity struct {
 	Definition       *Definition `( @@ ("\r\n"|"\r"|"\n")`
 	Functions        *Func       `| @@`
-	CommentOneLine   string      `| "//" @CommentOneLineChar ("\r\n"|"\r"|"\n")`
-	CommentMultiLine string      `| "/" "*" @CommentMultiLineChar "*" "/"`
-	BlankLine        struct{}    `| LF)`
+	CommentOneLine   string      `| @CommentOneLine`
+	CommentMultiLine string      `| @CommentMultiLine)`
 }
 
 type Definition struct {
-	Key    string `@("#define"|"#globaldefine") Space+`
-	Before string `@DefinitionChar Space+`
+	Key    string `@("#define"|"#globaldefine")`
+	Before string `@DefinitionChar`
 	After  string `@DefinitionChar`
 }
 
 type Func struct {
-	FunctionName string `@Ident`
-	FunctionType string `(":" @FuncType)?`
+	FunctionName string `@FuncName`
+	FunctionType string `(":" @("array"|"void"))?`
 
-	Begin      struct{}      `("\r\n"|"\r"|"\n")? "{" ("\r\n"|"\r"|"\n")*`
-	FuncEntity []*FuncEntity `@@*`
-	End        struct{}      `"}"`
+	FuncEntity []*FuncEntity `"{" @@* "}"`
 }
 
-// Func内で出現しうる記述
+// Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	Main *Line         `( @@ ("\r\n"|"\r"|"\n"|";")`
-	Sub  []*FuncEntity `| "{" ("\r\n"|"\r"|"\n")* @@* ("\r\n"|"\r"|"\n")* "}" ("\r\n"|"\r"|"\n")*)`
-}
-
-// 関数内に1行で取りうる式
-type Line struct {
-	Separator        string   `( @Separator`
-	CommentOneLine   string   `| "//" @CommentOneLineChar ("\r\n"|"\r"|"\n")`
-	CommentMultiLine string   `| "/" "*" @CommentMultiLineChar "*" "/"`
-	Flow             *Flow    `| @@`
-	Asign            *Asign   `| @@`
-	Logic            *Logic   `| @@`
-	Value            *Primary `| @@)`
+	Separator        string        `( @Separator`
+	CommentOneLine   string        `| @CommentOneLine`
+	CommentMultiLine string        `| @CommentMultiLine`
+	Flow             *Flow         `| @@`
+	Asign            *Asign        `| @@`
+	Logic            *Logic        `| @@`
+	Value            *Primary      `| @@`
+	Sub              []*FuncEntity `| "{" @@* "}")`
 }
 
 // フロー制御文
 type Flow struct {
-	Key     string `( @FlowKey`
-	KeyExpr string `| @FlowKeyExpr`
-	Expr    *Logic `  @@)`
+	Key        string   `( @FlowKey`
+	KeyPrimery string   `| @FlowKeyPrimary`
+	Primery    *Primary `  @@`
+	KeyExpr    string   `| @FlowKeyExpr`
+	Expr       *Expr    `  @@)`
 
-	OneLineSub   *FuncEntity   `( ("\r\n"|"\r"|"\n") @@`
-	MultiLineSub []*FuncEntity `| ("\r\n"|"\r"|"\n")? "{" ("\r\n"|"\r"|"\n")* @@* "}")`
+	OneLineSub   *FuncEntity   `(  @@`
+	MultiLineSub []*FuncEntity `| "{" @@* "}")`
 }
 
 // 代入式
@@ -60,13 +54,20 @@ type Asign struct {
 	Left string `@Ident`
 
 	OperAsign      string `( @OperAsign`
-	Right          *Logic `  @@`
-	OperAsignUnary string `| @OperAsignUnary)`
+	Right          *Expr  `  @@`
+	OperAsignUnary string `| @("+" "+"|"-" "-"))`
+}
+
+// 条件式
+type Expr struct {
+	Blackets *Expr  `( "(" @@ ")"`
+	Logic    *Logic `| @@)`
 }
 
 // 論理演算式
 type Logic struct {
-	Comparison *Comparison `@@`
+	Blackets   *Comparison `( "(" @@ ")"`
+	Comparison *Comparison `| @@)`
 
 	OperLogic string `[ @("||"|"&&")`
 	Right     *Logic `  @@]`
@@ -74,7 +75,8 @@ type Logic struct {
 
 // 比較演算式
 type Comparison struct {
-	Addition *Addition `@@`
+	Blackets *Addition `( "(" @@ ")"`
+	Addition *Addition `| @@)`
 
 	OperComp string      `[ @("=" "="|"!" "="|">" "="|"<" "="|">"|"<"|"_in_"|"!_in_")`
 	Right    *Comparison `  @@]`
@@ -82,7 +84,8 @@ type Comparison struct {
 
 // 加減法式
 type Addition struct {
-	Multipulation *Multipulation `@@`
+	Blackets      *Multipulation `( "(" @@ ")"`
+	Multipulation *Multipulation `| @@)`
 
 	Op    string    `[ @("+"|"-")`
 	Right *Addition `  @@]`
@@ -90,7 +93,8 @@ type Addition struct {
 
 // 乗除法式
 type Multipulation struct {
-	Unary *Unary `@@`
+	Blackets *Unary `( "(" @@ ")"`
+	Unary    *Unary `| @@)`
 
 	Op    string         `[ @("*"|"/"|"%")`
 	Right *Multipulation `  @@]`
@@ -98,8 +102,9 @@ type Multipulation struct {
 
 // 単項演算式
 type Unary struct {
-	Unary   string   `(@OperUnary)?`
-	Primary *Primary `@@`
+	Unary    string   `(@OperUnary)?`
+	Blackets *Primary `( "(" @@ ")"`
+	Primary  *Primary `| @@)`
 }
 
 // 単項: 左辺と右辺の両方になりうる式
