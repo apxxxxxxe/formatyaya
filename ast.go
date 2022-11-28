@@ -60,51 +60,53 @@ type Asign struct {
 
 // 条件式
 type Expr struct {
-	Blackets *Expr  `( "(" @@ ")"`
-	Logic    *Logic `| @@)`
+	BLogic *Logic `"(" @@ ")"`
+	Logic  *Logic `| @@`
 }
 
 // 論理演算式
 type Logic struct {
-	Blackets   *Comparison `( "(" @@ ")"`
-	Comparison *Comparison `| @@)`
+	BComparison *Comparison `"(" @@ ")"`
+	Comparison  *Comparison `| @@`
 
-	OperLogic string `[ @("||"|"&&")`
-	Right     *Logic `  @@]`
+	OperLogic string `( @("||"|"&&")`
+	BRight    *Logic `  ("(" @@ ")"`
+	Right     *Logic `  | @@))?`
 }
 
 // 比較演算式
 type Comparison struct {
-	Blackets *Addition `( "(" @@ ")"`
-	Addition *Addition `| @@)`
+	BAddition *Addition `"(" @@ ")"`
+	Addition  *Addition `| @@`
 
-	OperComp string      `[ @("=" "="|"!" "="|">" "="|"<" "="|">"|"<"|"_in_"|"!_in_")`
-	Right    *Comparison `  @@]`
+	OperComp string      `( @("=" "="|"!="|">="|"<="|">"|"<"|"_in_"|"!_in_")`
+	BRight   *Comparison `  ("(" @@ ")"`
+	Right    *Comparison `  | @@))?`
 }
 
 // 加減法式
 type Addition struct {
-	Blackets      *Multipulation `( "(" @@ ")"`
-	Multipulation *Multipulation `| @@)`
+	BMultipulation *Multipulation `"(" @@ ")"`
+	Multipulation  *Multipulation `| @@`
 
-	Op    string    `[ @("+"|"-")`
-	Right *Addition `  @@]`
+	Op     string    `( @("+"|"-")`
+	BRight *Addition `  ("(" @@ ")"`
+	Right  *Addition `  | @@))?`
 }
 
 // 乗除法式
 type Multipulation struct {
-	Blackets *Unary `( "(" @@ ")"`
-	Unary    *Unary `| @@)`
+	Unary *Unary `@@`
 
-	Op    string         `[ @("*"|"/"|"%")`
-	Right *Multipulation `  @@]`
+	Op     string         `( @("*"|"/"|"%")`
+	BRight *Multipulation `  ("(" @@ ")"`
+	Right  *Multipulation `  | @@))?`
 }
 
 // 単項演算式
 type Unary struct {
-	Unary    string   `(@OperUnary)?`
-	Blackets *Primary `( "(" @@ ")"`
-	Primary  *Primary `| @@)`
+	Unary   string   `(@OperUnary)?`
+	Primary *Primary `@@`
 }
 
 // 単項: 左辺と右辺の両方になりうる式
