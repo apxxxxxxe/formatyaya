@@ -60,47 +60,39 @@ type Asign struct {
 
 // 条件式
 type Expr struct {
-	BLogic *Logic `"(" @@ ")"`
-	Logic  *Logic `| @@`
+	Logic *Logic `@@`
 }
 
 // 論理演算式
 type Logic struct {
-	BComparison *Comparison `"(" @@ ")"`
-	Comparison  *Comparison `| @@`
+	Comparison *Comparison `@@`
 
 	OperLogic string `( @("||"|"&&")`
-	BRight    *Logic `  ("(" @@ ")"`
-	Right     *Logic `  | @@))?`
+	Right     *Logic `  @@)?`
 }
 
 // 比較演算式
 type Comparison struct {
-	BAddition *Addition `"(" @@ ")"`
-	Addition  *Addition `| @@`
+	Addition *Addition `@@`
 
 	OperComp string      `( @("=" "="|"!="|">="|"<="|">"|"<"|"_in_"|"!_in_")`
-	BRight   *Comparison `  ("(" @@ ")"`
-	Right    *Comparison `  | @@))?`
+	Right    *Comparison `  @@)?`
 }
 
 // 加減法式
 type Addition struct {
-	BMultipulation *Multipulation `"(" @@ ")"`
-	Multipulation  *Multipulation `| @@`
+	Multipulation *Multipulation `@@`
 
-	Op     string    `( @("+"|"-")`
-	BRight *Addition `  ("(" @@ ")"`
-	Right  *Addition `  | @@))?`
+	Op    string    `( @("+"|"-")`
+	Right *Addition `  @@)?`
 }
 
 // 乗除法式
 type Multipulation struct {
 	Unary *Unary `@@`
 
-	Op     string         `( @("*"|"/"|"%")`
-	BRight *Multipulation `  ("(" @@ ")"`
-	Right  *Multipulation `  | @@))?`
+	Op    string         `( @("*"|"/"|"%")`
+	Right *Multipulation `  @@)?`
 }
 
 // 単項演算式
@@ -116,7 +108,8 @@ type Primary struct {
 	FuncCall    *FuncCall  `| @@`
 	ArrayCall   *ArrayCall `| @@`
 	Number      *Number    `| @@`
-	Ident       string     `| @Ident)`
+	Ident       string     `| @Ident`
+	SubExpr     *Expr      `| "(" @@ ")")`
 }
 
 type FuncCall struct {

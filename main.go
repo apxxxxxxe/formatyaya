@@ -22,9 +22,9 @@ func main() {
 		defer fp.Close()
 
 		actual, err = parser.Parse("", fp)
+		repr.Println(actual)
 		if err != nil {
 			fmt.Println("NG:", fp.Name())
-			repr.Println(actual)
 			log.Fatal(err)
 		} else {
 			fmt.Println("OK:", fp.Name())
