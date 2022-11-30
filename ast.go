@@ -39,8 +39,9 @@ type FuncEntity struct {
 
 // フロー制御文
 type Flow struct {
-	Key string `( @FlowKey`
-	// KeyFor     string   `| "for"`
+	Key        string   `( @FlowKey`
+	KeyFor     string   `| @"for"`
+	ExprFor    *ExprFor `  @@`
 	KeyPrimery string   `| @FlowKeyPrimary`
 	Primery    *Primary `  @@`
 	KeyExpr    string   `| @FlowKeyExpr`
@@ -48,6 +49,12 @@ type Flow struct {
 
 	OneLineSub   *FuncEntity   `(  @@`
 	MultiLineSub []*FuncEntity `| "{" @@* "}")`
+}
+
+type ExprFor struct {
+	InitAsign *Asign `@@ ";"`
+	EndExpr   *Expr  `@@ ";"`
+	LoopAsign *Asign `@@`
 }
 
 // 代入式
