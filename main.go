@@ -4,30 +4,37 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 
 	"github.com/alecthomas/repr"
 )
 
+var (
+	rep = regexp.MustCompile(`([^*])/(\r\n|\r|\n)[\t ]*`)
+)
+
 func main() {
-	var fp *os.File
-	var err error
 	var actual *Root
-	files := []string{"./yaya_bootend.dic", "./yaya_aitalk.dic"}
+	files := []string{"yaya_bootend.dic", "yaya_aitalk.dic"}
 
 	for _, f := range files {
-		fp, err = os.Open(f)
+		b, err := os.ReadFile(f)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		defer fp.Close()
 
-		actual, err = parser.Parse("", fp)
+		src := rep.ReplaceAllString(string(b), "$1")
+		if err := os.WriteFile("replaced_"+f, []byte(src), 0644); err != nil {
+			panic(err)
+		}
+
+		actual, err = parser.ParseString("", string(src))
 		repr.Println(actual)
 		if err != nil {
-			fmt.Println("NG:", fp.Name())
+			fmt.Println("NG:", f)
 			log.Fatal(err)
 		} else {
-			fmt.Println("OK:", fp.Name())
+			fmt.Println("OK:", f)
 		}
 	}
 }

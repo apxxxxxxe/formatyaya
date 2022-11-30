@@ -148,13 +148,13 @@ type DoubleQuoteLine struct {
 }
 
 type FuncCall struct {
-	FuncName string     `@Ident`
-	Args     []*Primary `"(" (@@ ","?)* ")"`
+	FuncName string  `@Ident`
+	Args     []*Expr `"(" (@@ ","?)* ")"`
 }
 
 type ArrayCall struct {
-	ArrayName string     `@Ident`
-	Args      []*Primary `("[" @@ "]")+`
+	ArrayName string  `@Ident`
+	Args      []*Expr `("[" @@ "]")+`
 }
 
 type Number struct {
