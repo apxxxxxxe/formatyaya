@@ -118,13 +118,33 @@ type Unary struct {
 
 // 単項: 左辺と右辺の両方になりうる式
 type Primary struct {
-	SingleQuote string     `( "'" @(SingleQuoteChar)? "'"`
-	DoubleQuote string     `| "\"" @(DoubleQuoteChar)? "\""`
-	FuncCall    *FuncCall  `| @@`
-	ArrayCall   *ArrayCall `| @@`
-	Number      *Number    `| @@`
-	Ident       string     `| @Ident`
-	SubExpr     *Expr      `| "(" @@ ")")`
+	String    *String    `( @@`
+	FuncCall  *FuncCall  `| @@`
+	ArrayCall *ArrayCall `| @@`
+	Number    *Number    `| @@`
+	Ident     string     `| @Ident`
+	SubExpr   *Expr      `| "(" @@ ")")`
+}
+
+type String struct {
+	SingleQuote *SingleQuote `( @@`
+	DoubleQuote *DoubleQuote `| @@)`
+}
+
+type SingleQuote struct {
+	Lines []*SingleQuoteLine `"'" @@* "'"`
+}
+
+type SingleQuoteLine struct {
+	Line string `@(SingleQuoteChar ContinuousLF?)`
+}
+
+type DoubleQuote struct {
+	Lines []*DoubleQuoteLine `"\"" @@* "\""`
+}
+
+type DoubleQuoteLine struct {
+	Line string `@(DoubleQuoteChar ContinuousLF?)`
 }
 
 type FuncCall struct {

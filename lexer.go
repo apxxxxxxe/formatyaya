@@ -52,11 +52,15 @@ var (
 			{Name: "FuncEnd", Pattern: `\}`, Action: lexer.Pop()},
 		},
 		"SingleQuoteStringRule": {
-			{Name: "SingleQuoteChar", Pattern: `[^']+`, Action: nil},
+			{Name: "LF", Pattern: `(\r\n|\r|\n)`, Action: nil},
+			{Name: "ContinuousLF", Pattern: `/$`, Action: nil},
+			{Name: "SingleQuoteChar", Pattern: `[^'\r\n]+`, Action: nil},
 			{Name: "SingleQuoteStringEnd", Pattern: `'`, Action: lexer.Pop()},
 		},
 		"DoubleQuoteStringRule": {
-			{Name: "DoubleQuoteChar", Pattern: `[^"]+`, Action: nil},
+			{Name: "LF", Pattern: `(\r\n|\r|\n)`, Action: nil},
+			{Name: "ContinuousLF", Pattern: `/$`, Action: nil},
+			{Name: "DoubleQuoteChar", Pattern: `[^"\r\n]+`, Action: nil},
 			{Name: "DoubleQuoteStringEnd", Pattern: `"`, Action: lexer.Pop()},
 		},
 		"FuncCallRule": {
