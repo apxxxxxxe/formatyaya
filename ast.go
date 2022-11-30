@@ -39,7 +39,8 @@ type FuncEntity struct {
 
 // フロー制御文
 type Flow struct {
-	Key        string   `( @FlowKey`
+	Key string `( @FlowKey`
+	// KeyFor     string   `| "for"`
 	KeyPrimery string   `| @FlowKeyPrimary`
 	Primery    *Primary `  @@`
 	KeyExpr    string   `| @FlowKeyExpr`
@@ -60,7 +61,14 @@ type Asign struct {
 
 // 条件式
 type Expr struct {
+	Enum *Enum `@@`
+}
+
+type Enum struct {
 	Logic *Logic `@@`
+
+	OperEnum string `( @","`
+	Right    *Enum  `  @@)?`
 }
 
 // 論理演算式

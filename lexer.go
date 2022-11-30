@@ -36,8 +36,10 @@ var (
 			{Name: `OperCalc`, Pattern: `(-|\+|/|\*|%)`, Action: nil},
 			{Name: `OperComp`, Pattern: `(==|!=|>=|<=|>|<|_in_|!_in_)`, Action: nil},
 			{Name: `OperLogic`, Pattern: `(\|\||&&)`, Action: nil},
+			{Name: "OperEnum", Pattern: `,`, Action: nil},
 			{Name: "FlowKeyExpr", Pattern: `(while|if|elseif|case)`, Action: nil},
 			{Name: "FlowKeyPrimary", Pattern: `when`, Action: nil},
+			{Name: "FlowKeyFor", Pattern: `for`, Action: nil},
 			{Name: "FlowKey", Pattern: `else`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			{Name: "Number", Pattern: `\d+(\.\d+)?`, Action: nil},
@@ -57,9 +59,8 @@ var (
 			{Name: "DoubleQuoteChar", Pattern: `[^"]+`, Action: nil},
 			{Name: "DoubleQuoteStringEnd", Pattern: `"`, Action: lexer.Pop()},
 		},
-		"FuncCallRule": { // 条件式のブラケットと関数呼び出しのカッコが混在している
+		"FuncCallRule": {
 			lexer.Include("FuncRule"),
-			{Name: "Delim", Pattern: `,`, Action: nil}, //関数呼び出し用
 			{Name: "FuncCallEnd", Pattern: `\)`, Action: lexer.Pop()},
 		},
 		"ArrayCallRule": {
