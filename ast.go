@@ -13,9 +13,20 @@ type RootEntity struct {
 }
 
 type Definition struct {
-	Key    string `@("#define"|"#globaldefine")`
-	Before string `@DefinitionChar`
-	After  string `@DefinitionChar`
+	DefinitionSpace *DefinitionSpace `( @@`
+	DefinitionTab   *DefinitionTab   `| @@)`
+}
+
+type DefinitionSpace struct {
+	Key    string `@DefinitionSpace`
+	Before string `@DefinitionSpaceChar Space`
+	After  string `@DefinitionSpaceChar`
+}
+
+type DefinitionTab struct {
+	Key    string `@DefinitionTab`
+	Before string `@DefinitionTabChar TabSpace`
+	After  string `@DefinitionTabChar`
 }
 
 type Func struct {
@@ -37,13 +48,15 @@ type FuncEntity struct {
 
 // フロー制御文
 type Flow struct {
-	Key      string   `( @FlowKey`
-	KeyFor   string   `| ( @"for"`
-	ExprFor  *ExprFor `    @@)`
-	KeyConst string   `| ( @FlowKeyConst`
-	Const    []*Const `    (@@ ","?)+)`
-	KeyExpr  string   `| ( @FlowKeyExpr`
-	Expr     *Expr    `    @@))`
+	Key         string       `( @FlowKey`
+	KeyForEach  string       `| ( @"for""each"`
+	ExprForEach *ExprForEach `    @@)`
+	KeyFor      string       `| ( @"for"`
+	ExprFor     *ExprFor     `    @@)`
+	KeyConst    string       `| ( @FlowKeyConst`
+	Const       []*Const     `    (@@ ","?)+)`
+	KeyExpr     string       `| ( @FlowKeyExpr`
+	Expr        *Expr        `    @@))`
 
 	ExprEnd      string        `( @("\n"|";")`
 	OneLineSub   *FuncEntity   `  @@`
@@ -56,9 +69,14 @@ type ExprFor struct {
 	LoopAsign *Asign `@@`
 }
 
+type ExprForEach struct {
+	Array *Enum  `@@ ";"`
+	Ident string `@Ident`
+}
+
 // 代入式
 type Asign struct {
-	Left string `@Ident`
+	LeftIdent string `@Ident`
 
 	OperAsign      string `( @OperAsign`
 	Right          *Expr  `  @@`
@@ -139,24 +157,10 @@ type Const struct {
 }
 
 type String struct {
-	SingleQuote *SingleQuote `( @@`
-	DoubleQuote *DoubleQuote `| @@)`
-}
-
-type SingleQuote struct {
-	Lines []*SingleQuoteLine `"'" @@* "'"`
-}
-
-type SingleQuoteLine struct {
-	Line string `@(SingleQuoteChar ContinuousLF?)`
-}
-
-type DoubleQuote struct {
-	Lines []*DoubleQuoteLine `"\"" @@* "\""`
-}
-
-type DoubleQuoteLine struct {
-	Line string `@(DoubleQuoteChar ContinuousLF?)`
+	SingleQuote        string `( "'" @SingleQuoteChar? "'"`
+	DoubleQuote        string `| "\"" @DoubleQuoteChar? "\""`
+	HearDocumentSingle string `| @HearDocumentSingle`
+	HearDocumentDouble string `| @HearDocumentDouble)`
 }
 
 type FuncCall struct {

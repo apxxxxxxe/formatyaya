@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/alecthomas/repr"
 )
@@ -25,6 +26,10 @@ func main() {
 	}
 
 	for _, f := range finfo {
+		if strings.HasPrefix(f.Name(), "replaced_") {
+			continue
+		}
+
 		b, err := os.ReadFile(filepath.Join(dirname, f.Name()))
 		if err != nil {
 			panic(err)
