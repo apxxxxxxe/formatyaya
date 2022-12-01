@@ -74,29 +74,27 @@ type ExprForEach struct {
 	Ident string `@Ident`
 }
 
-// 代入式
-type Asign struct {
-	LeftIdent string `@Ident`
-
-	OperAsign      string `( @OperAsign`
-	Right          *Expr  `  @@`
-	OperAsignUnary string `| @("+" "+"|"-" "-"))`
-}
-
 // 条件式
 type Expr struct {
-	Asign *Asign `( @@`
-	Enum  *Enum  `| @@)`
+	Enum *Enum `@@`
 }
 
 type Enum struct {
-	Logic *Or `@@`
+	Asign *Asign `@@`
 
 	OperEnum string `( @","`
 	Right    *Enum  `  @@)?`
 }
 
-// 論理演算式And
+// 代入式
+type Asign struct {
+	Or *Or `@@`
+
+	OperAsign string `( @OperAsign`
+	Right     *Asign `  @@)?`
+}
+
+// 論理演算式Or
 type Or struct {
 	And *And `@@`
 
@@ -104,7 +102,7 @@ type Or struct {
 	Right  *Or    `  @@)?`
 }
 
-// 論理演算式Or
+// 論理演算式And
 type And struct {
 	Comparison *Comparison `@@`
 
@@ -116,7 +114,7 @@ type And struct {
 type Comparison struct {
 	Addition *Addition `@@`
 
-	OperComp string      `( @("=" "="|"!""="|">="|"<="|">"|"<"|"_in_"|"!_in_")`
+	OperComp string      `( @("=" "="|"!""="|">="|"<="|">"|"<"|"_in_"|"!""_in_")`
 	Right    *Comparison `  @@)?`
 }
 
@@ -138,8 +136,9 @@ type Multipulation struct {
 
 // 単項演算式
 type Unary struct {
-	Unary   string   `(@OperUnary)?`
-	Primary *Primary `@@`
+	Unary       string   `(@OperUnary)?`
+	Primary     *Primary `@@`
+	OperCalcOne string   `@("+" "+"|"--")?`
 }
 
 // 単項: 左辺と右辺の両方になりうる式
