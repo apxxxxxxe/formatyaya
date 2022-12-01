@@ -40,7 +40,7 @@ var (
 			{Name: `OperLogic`, Pattern: `(\|\||&&)`, Action: nil},
 			{Name: "OperEnum", Pattern: `,`, Action: nil},
 			{Name: "FlowKeyExpr", Pattern: `(while|if|elseif|case)`, Action: nil},
-			{Name: "FlowKeyPrimary", Pattern: `when`, Action: nil},
+			{Name: "FlowKeyConst", Pattern: `when`, Action: nil},
 			{Name: "FlowKeyFor", Pattern: `for`, Action: nil},
 			{Name: "FlowKey", Pattern: `else`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},

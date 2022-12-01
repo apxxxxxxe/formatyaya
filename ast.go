@@ -37,13 +37,13 @@ type FuncEntity struct {
 
 // フロー制御文
 type Flow struct {
-	Key        string   `( @FlowKey`
-	KeyFor     string   `| ( @"for"`
-	ExprFor    *ExprFor `    @@)`
-	KeyPrimery string   `| ( @FlowKeyPrimary`
-	Primery    *Primary `    @@)`
-	KeyExpr    string   `| ( @FlowKeyExpr`
-	Expr       *Expr    `    @@))`
+	Key      string   `( @FlowKey`
+	KeyFor   string   `| ( @"for"`
+	ExprFor  *ExprFor `    @@)`
+	KeyConst string   `| ( @FlowKeyConst`
+	Const    []*Const `    (@@ ","?)+)`
+	KeyExpr  string   `| ( @FlowKeyExpr`
+	Expr     *Expr    `    @@))`
 
 	ExprEnd      string        `( @("\n"|";")`
 	OneLineSub   *FuncEntity   `  @@`
@@ -126,12 +126,16 @@ type Unary struct {
 
 // 単項: 左辺と右辺の両方になりうる式
 type Primary struct {
+	Const   *Const `( @@`
+	SubExpr *Expr  `| "(" @@ ")")`
+}
+
+type Const struct {
 	String    *String    `( @@`
 	FuncCall  *FuncCall  `| @@`
 	ArrayCall *ArrayCall `| @@`
 	Number    *Number    `| @@`
-	Ident     string     `| @Ident`
-	SubExpr   *Expr      `| "(" @@ ")")`
+	Ident     string     `| @Ident)`
 }
 
 type String struct {

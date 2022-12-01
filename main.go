@@ -38,8 +38,8 @@ func main() {
 		}
 
 		actual, err := parser.ParseString("", string(src))
-		repr.Println(actual)
 		if err != nil {
+			repr.Println(actual)
 			fmt.Println("NG:", f.Name())
 			log.Fatal(err)
 		} else {
