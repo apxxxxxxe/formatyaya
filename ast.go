@@ -6,7 +6,7 @@ type Root struct {
 
 // Root内で出現しうる記述
 type RootEntity struct {
-	Definition       *Definition `( @@ ("\r\n"|"\r"|"\n")`
+	Definition       *Definition `( @@ "\n"`
 	Functions        *Func       `| @@`
 	CommentOneLine   string      `| @CommentOneLine`
 	CommentMultiLine string      `| @CommentMultiLine)`
@@ -31,23 +31,22 @@ type FuncEntity struct {
 	CommentOneLine   string        `| @CommentOneLine`
 	CommentMultiLine string        `| @CommentMultiLine`
 	Flow             *Flow         `| @@`
-	Asign            *Asign        `| @@`
-	Logic            *Logic        `| @@`
-	Value            *Primary      `| @@`
+	Value            *Expr         `| @@`
 	Sub              []*FuncEntity `| "{" @@* "}")`
 }
 
 // フロー制御文
 type Flow struct {
 	Key        string   `( @FlowKey`
-	KeyFor     string   `| @"for"`
-	ExprFor    *ExprFor `  @@`
-	KeyPrimery string   `| @FlowKeyPrimary`
-	Primery    *Primary `  @@`
-	KeyExpr    string   `| @FlowKeyExpr`
-	Expr       *Expr    `  @@)`
+	KeyFor     string   `| ( @"for"`
+	ExprFor    *ExprFor `    @@)`
+	KeyPrimery string   `| ( @FlowKeyPrimary`
+	Primery    *Primary `    @@)`
+	KeyExpr    string   `| ( @FlowKeyExpr`
+	Expr       *Expr    `    @@))`
 
-	OneLineSub   *FuncEntity   `(  @@`
+	ExprEnd      string        `( @("\n"|";")`
+	OneLineSub   *FuncEntity   `  @@`
 	MultiLineSub []*FuncEntity `| "{" @@* "}")`
 }
 
@@ -68,29 +67,38 @@ type Asign struct {
 
 // 条件式
 type Expr struct {
-	Enum *Enum `@@`
+	Asign *Asign `( @@`
+	Enum  *Enum  `| @@)`
 }
 
 type Enum struct {
-	Logic *Logic `@@`
+	Logic *Or `@@`
 
 	OperEnum string `( @","`
 	Right    *Enum  `  @@)?`
 }
 
-// 論理演算式
-type Logic struct {
+// 論理演算式And
+type Or struct {
+	And *And `@@`
+
+	OperOr string `( @"||"`
+	Right  *Or    `  @@)?`
+}
+
+// 論理演算式Or
+type And struct {
 	Comparison *Comparison `@@`
 
-	OperLogic string `( @("||"|"&&")`
-	Right     *Logic `  @@)?`
+	OperAnd string `( @"&&"`
+	Right   *And   `  @@)?`
 }
 
 // 比較演算式
 type Comparison struct {
 	Addition *Addition `@@`
 
-	OperComp string      `( @("=" "="|"!="|">="|"<="|">"|"<"|"_in_"|"!_in_")`
+	OperComp string      `( @("=" "="|"!""="|">="|"<="|">"|"<"|"_in_"|"!_in_")`
 	Right    *Comparison `  @@)?`
 }
 
@@ -158,5 +166,6 @@ type ArrayCall struct {
 }
 
 type Number struct {
-	Value float64 `@Number`
+	Number float64 `( @Number`
+	Hex    int     `| @HexNum)`
 }
