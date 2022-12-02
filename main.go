@@ -13,8 +13,13 @@ import (
 )
 
 var (
-	rep   = regexp.MustCompile(`([^*])/(\r\n|\r|\n)[\t ]*`)
-	repLF = regexp.MustCompile(`(\r\n|\r|\n)`)
+	rep        = regexp.MustCompile(`([^*])/(\r\n|\r|\n)[\t ]*`)
+	repLF      = regexp.MustCompile(`(\r\n|\r|\n)`)
+	repFor     = regexp.MustCompile(`for([^\n{;]*);([^\n{;]*);`)
+	repForEach = regexp.MustCompile(`foreach([^;]*);`)
+
+	// ;を置換する際の一時的な文字 ファイル内に存在するどの文字とも被ってはいけない
+	tmpColon = string(rune(0x12))
 )
 
 func main() {
@@ -37,6 +42,12 @@ func main() {
 
 		src := rep.ReplaceAllString(string(b), "$1")
 		src = repLF.ReplaceAllString(src, "\n")
+
+		src = repFor.ReplaceAllString(src, "for$1"+tmpColon+"$2"+tmpColon)
+		src = repForEach.ReplaceAllString(src, "foreach$1"+tmpColon)
+
+		src = strings.ReplaceAll(src, ";", "\n")
+		src = strings.ReplaceAll(src, tmpColon, ";")
 
 		if err := os.WriteFile(filepath.Join(dirname, "replaced_"+f.Name()), []byte(src), 0644); err != nil {
 			panic(err)
