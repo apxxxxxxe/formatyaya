@@ -6,12 +6,16 @@ type Root struct {
 
 // Root内で出現しうる記述
 type RootEntity struct {
-	Definition       *Definition `( @@ `
-	DefLF            string      `  "\n"`
-	Function         *Func       `| @@`
-	CommentOneLine   string      `| @CommentOneLine`
-	CommentMultiLine string      `| @CommentMultiLine`
-	LF               string      `| @"\n")`
+	Definition *Definition `( @@ `
+	DefLF      string      `  "\n"`
+	Comment    *Comment    `| @@`
+	Function   *Func       `| @@`
+	LF         string      `| @"\n")`
+}
+
+type Comment struct {
+	CommentOneLine   string `( @CommentOneLine`
+	CommentMultiLine string `| @CommentMultiLine)`
 }
 
 type Definition struct {
@@ -20,15 +24,15 @@ type Definition struct {
 }
 
 type DefinitionSpace struct {
-	Key    string `@DefinitionSpace`
-	Before string `@DefinitionSpaceChar Space`
-	After  string `@DefinitionSpaceChar`
+	DefSpaceKey    string `@DefinitionSpace`
+	DefSpaceBefore string `@DefinitionSpaceChar Space`
+	DefSpaceAfter  string `@DefinitionSpaceChar`
 }
 
 type DefinitionTab struct {
-	Key    string `@DefinitionTab`
-	Before string `@DefinitionTabChar TabSpace`
-	After  string `@DefinitionTabChar`
+	DefTabKey    string `@DefinitionTab`
+	DefTabBefore string `@DefinitionTabChar TabSpace`
+	DefTabAfter  string `@DefinitionTabChar`
 }
 
 type Func struct {
@@ -44,31 +48,32 @@ type Func struct {
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	Separator        string        `( @Separator`
-	CommentOneLine   string        `| @CommentOneLine`
-	CommentMultiLine string        `| @CommentMultiLine`
-	Flow             *Flow         `| @@`
-	Value            *Expr         `| @@`
-	LF               string        `| "\n"`
-	SubBegin         string        `| @"{"`
-	Sub              []*FuncEntity `  @@*`
-	SubEnd           string        `  @"}")`
+	Separator string        `( @Separator`
+	Comment   *Comment      `| @@`
+	Flow      *Flow         `| @@`
+	Value     *Expr         `| @@`
+	LF        string        `| "\n"`
+	SubBegin  string        `| @"{"`
+	Sub       []*FuncEntity `  @@*`
+	SubEnd    string        `  @"}")`
 }
 
 // フロー制御文
 type Flow struct {
-	KeyFlow     string       `( @FlowKey`
-	KeyForEach  string       `| ( @"for""each"`
-	ExprForEach *ExprForEach `    @@)`
-	KeyFor      string       `| ( @"for"`
-	ExprFor     *ExprFor     `    @@)`
-	KeyConst    string       `| ( @FlowKeyConst`
-	Const       []*Const     `    (@@ ","?)+)`
-	KeyExpr     string       `| ( @FlowKeyExpr`
-	Expr        *Expr        `    @@))`
+	FlowKey         string       `( @FlowKey`
+	FlowKeyForEach  string       `| ( @"for""each"`
+	FlowExprForEach *ExprForEach `    @@)`
+	FlowKeyFor      string       `| ( @"for"`
+	FlowExprFor     *ExprFor     `    @@)`
+	FlowKeyConst    string       `| ( @FlowKeyConst`
+	FlowConst       []*Const     `    (@@ ","?)+)`
+	FlowKeyExpr     string       `| ( @FlowKeyExpr`
+	FlowExpr        *Expr        `    @@))`
 
-	ExprEnd               string        `( ("\n"|";")`
+	FlowExprEnd           string        `( ("\n"|";")`
+	FlowComment           *Comment      `  @@*`
 	FlowOneLineSub        *FuncEntity   `  @@`
+	FlowOneLineSubEnd     string        `  @("\n"|";")?`
 	FlowMultiLineSubBegin string        `| @"{"`
 	FlowMultiLineSub      []*FuncEntity `  @@*`
 	FlowMultiLineSubEnd   string        `  @"}")`
@@ -167,8 +172,8 @@ type Const struct {
 }
 
 type String struct {
-	SingleQuote        string `( "'" @SingleQuoteChar? "'"`
-	DoubleQuote        string `| "\"" @DoubleQuoteChar? "\""`
+	SingleQuote        string `( @"'" @SingleQuoteChar? @"'"`
+	DoubleQuote        string `| @"\"" @DoubleQuoteChar? @"\""`
 	HearDocumentSingle string `| @HearDocumentSingle`
 	HearDocumentDouble string `| @HearDocumentDouble)`
 }
