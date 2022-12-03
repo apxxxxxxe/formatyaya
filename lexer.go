@@ -54,7 +54,8 @@ var (
 			{Name: "FlowKey", Pattern: `else`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			{Name: "HexNum", Pattern: `0x[0-9A-za-z]+`, Action: nil},
-			{Name: "Number", Pattern: `\d+(\.\d+)?`, Action: nil},
+			{Name: "Float", Pattern: `\d+\.\d+`, Action: nil},
+			{Name: "Int", Pattern: `\d+`, Action: nil},
 			{Name: "Ident", Pattern: `[a-zA-Z_]([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる
 			{Name: "FuncCall", Pattern: `\(`, Action: lexer.Push("FuncCallRule")},
 			{Name: "ArrayCall", Pattern: `\[`, Action: lexer.Push("ArrayCallRule")},
@@ -85,6 +86,5 @@ var (
 		participle.Lexer(def),
 		participle.Elide("Space"),
 		participle.Elide("TabSpace"),
-		participle.Elide("LF"),
 	)
 )

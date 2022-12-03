@@ -6,10 +6,12 @@ type Root struct {
 
 // Root内で出現しうる記述
 type RootEntity struct {
-	Definition       *Definition `( @@ "\n"`
-	Functions        *Func       `| @@`
+	Definition       *Definition `( @@ `
+	DefLF            string      `  "\n"`
+	Function         *Func       `| @@`
 	CommentOneLine   string      `| @CommentOneLine`
-	CommentMultiLine string      `| @CommentMultiLine)`
+	CommentMultiLine string      `| @CommentMultiLine`
+	LF               string      `| @"\n")`
 }
 
 type Definition struct {
@@ -33,7 +35,11 @@ type Func struct {
 	FunctionName string `@FuncName`
 	FunctionType string `(":" @("array"|"void"))?`
 
-	FuncEntity []*FuncEntity `"{" @@* "}"`
+	LF string `| "\n"?`
+
+	FuncEntitiesBegin string        `@"{"`
+	FuncEntities      []*FuncEntity `@@*`
+	FuncEntitiesEnd   string        `@"}"`
 }
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
@@ -43,12 +49,15 @@ type FuncEntity struct {
 	CommentMultiLine string        `| @CommentMultiLine`
 	Flow             *Flow         `| @@`
 	Value            *Expr         `| @@`
-	Sub              []*FuncEntity `| "{" @@* "}")`
+	LF               string        `| "\n"`
+	SubBegin         string        `| @"{"`
+	Sub              []*FuncEntity `  @@*`
+	SubEnd           string        `  @"}")`
 }
 
 // フロー制御文
 type Flow struct {
-	Key         string       `( @FlowKey`
+	KeyFlow     string       `( @FlowKey`
 	KeyForEach  string       `| ( @"for""each"`
 	ExprForEach *ExprForEach `    @@)`
 	KeyFor      string       `| ( @"for"`
@@ -58,15 +67,17 @@ type Flow struct {
 	KeyExpr     string       `| ( @FlowKeyExpr`
 	Expr        *Expr        `    @@))`
 
-	ExprEnd      string        `( @("\n"|";")`
-	OneLineSub   *FuncEntity   `  @@`
-	MultiLineSub []*FuncEntity `| "{" @@* "}")`
+	ExprEnd               string        `( ("\n"|";")`
+	FlowOneLineSub        *FuncEntity   `  @@`
+	FlowMultiLineSubBegin string        `| @"{"`
+	FlowMultiLineSub      []*FuncEntity `  @@*`
+	FlowMultiLineSubEnd   string        `  @"}")`
 }
 
 type ExprFor struct {
-	InitAsign *Asign `@@ ";"`
-	EndExpr   *Expr  `@@ ";"`
-	LoopAsign *Asign `@@`
+	ForInitAsign *Asign `@@ ";"`
+	ForEndExpr   *Expr  `@@ ";"`
+	ForLoopAsign *Asign `@@`
 }
 
 type ExprForEach struct {
@@ -122,16 +133,16 @@ type Comparison struct {
 type Addition struct {
 	Multipulation *Multipulation `@@`
 
-	Op    string    `( @("+"|"-")`
-	Right *Addition `  @@)?`
+	OperAdd string    `( @("+"|"-")`
+	Right   *Addition `  @@)?`
 }
 
 // 乗除法式
 type Multipulation struct {
 	Unary *Unary `@@`
 
-	Op    string         `( @("*"|"/"|"%")`
-	Right *Multipulation `  @@)?`
+	OperMulti string         `( @("*"|"/"|"%")`
+	Right     *Multipulation `  @@)?`
 }
 
 // 単項演算式
@@ -164,15 +175,17 @@ type String struct {
 
 type FuncCall struct {
 	FuncName string  `@Ident`
-	Args     []*Expr `"(" (@@ ","?)* ")"`
+	FuncArgs []*Expr `"(" (@@ ","?)* ")"`
 }
 
 type ArrayCall struct {
 	ArrayName string  `@Ident`
-	Args      []*Expr `("[" @@ "]")+`
+	ArrayArgs []*Expr `("[" @@ "]")+`
 }
 
+// 目的はパースなのでstringでとっていい
 type Number struct {
-	Number float64 `( @Number`
-	Hex    int     `| @HexNum)`
+	Hex   string `( @HexNum`
+	Float string `| @Float`
+	Int   string `| @Int)`
 }
