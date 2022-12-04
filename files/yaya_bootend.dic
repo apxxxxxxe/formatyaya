@@ -28,7 +28,7 @@ OnBoot
   _text = ""
   if !isEvent1End {
     "\![raise,OnEvent1_1]"
-    return
+	return
   }
   if ISVAR("hasSuicideInfo") && hasSuicideInfo {
     _text = Dead
