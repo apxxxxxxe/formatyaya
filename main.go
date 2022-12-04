@@ -16,8 +16,8 @@ import (
 const dirname = "files"
 
 var (
-	rep              = regexp.MustCompile(`([^*])/(\r\n|\r|\n)[\t ]*`)
-	repLF            = regexp.MustCompile(`(\r\n|\r|\n)`)
+	repSlash         = regexp.MustCompile(`([^*])/\n[\t ]*`)
+	repLF            = regexp.MustCompile(`(\r\n|\r)`)
 	repTrailingSpace = regexp.MustCompile(`[\t ]+\n`)
 )
 
@@ -27,9 +27,12 @@ func parse(filename string) *Root {
 		panic(err)
 	}
 
-	src := rep.ReplaceAllString(string(b), "$1")
-	src = repLF.ReplaceAllString(src, "\n")
+	// 改行コードの統一
+	src := repLF.ReplaceAllString(string(b), "\n")
+	// 行末の空白文字を削除
 	src = repTrailingSpace.ReplaceAllString(src, "\n")
+	// 行末のスラッシュ(次行との連結)を処理
+	src = repSlash.ReplaceAllString(src, "$1")
 
 	actual, err := parser.ParseString("", string(src))
 	if err != nil {

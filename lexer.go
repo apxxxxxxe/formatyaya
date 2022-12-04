@@ -51,8 +51,8 @@ var (
 			{Name: "OperEnum", Pattern: `,`, Action: nil},
 			{Name: "FlowKeyExpr", Pattern: `(while|if|elseif|case|switch)`, Action: nil},
 			{Name: "FlowKeyConst", Pattern: `when`, Action: nil},
-			{Name: "FlowKeyFor", Pattern: `for`, Action: nil},
-			{Name: "FlowKeyForEach", Pattern: `foreach`, Action: nil},
+			{Name: "FlowKeyForEach", Pattern: `foreach `, Action: nil},
+			{Name: "FlowKeyFor", Pattern: `for `, Action: nil},
 			{Name: "FlowKey", Pattern: `else`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			{Name: "HexNum", Pattern: `0x[0-9A-za-z]+`, Action: nil},
@@ -82,13 +82,15 @@ var (
 			{Name: "ArrayCallEnd", Pattern: `\]`, Action: lexer.Pop()},
 		},
 		"Comments": {
-			{Name: `CommentOneLine`, Pattern: `//.*\n`, Action: nil},
-			{Name: "CommentMultiLine", Pattern: `/\*([\n	 ]|.)*\*/`, Action: nil},
+			{Name: `CommentOneLine`, Pattern: `//[^\n]*`, Action: nil},
+			{Name: "CommentMultiLine", Pattern: `/\*(\n|.)*\*/`, Action: nil},
 		},
 	})
 	parser = participle.MustBuild[Root](
 		participle.Lexer(def),
 		participle.Elide("Space"),
 		participle.Elide("TabSpace"),
+		participle.Elide("CommentOneLine"),
+		participle.Elide("CommentMultiLine"),
 	)
 )

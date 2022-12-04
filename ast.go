@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/alecthomas/participle/v2/lexer"
+)
+
 type Root struct {
 	Rootentities []*RootEntity `@@*`
 }
@@ -8,9 +12,10 @@ type Root struct {
 type RootEntity struct {
 	Definition *Definition `( @@ `
 	DefLF      string      `  "\n"`
-	Comment    *Comment    `| @@`
 	Function   *Func       `| @@`
 	LF         string      `| @"\n")`
+
+	Tokens []lexer.Token
 }
 
 type Comment struct {
@@ -37,7 +42,7 @@ type DefinitionTab struct {
 
 type Func struct {
 	FunctionName string `@FuncName`
-	FunctionType string `(":" @("array"|"void"))?`
+	FunctionType string `(":" @("array"|"void"|"nonoverlap"|"sequential"))?` // @FuncTypeだと認識しないので即値で指定
 
 	LF string `| "\n"?`
 
@@ -48,24 +53,24 @@ type Func struct {
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	OutputFixer       string        `( @OutputFixer "\n"`
-	Comment           *Comment      `| @@`
-	Flow              *Flow         `| @@`
-	PreValue          string        `| @PreValue?`
-	Value             *Expr         `  @@`
-	CommentAfterValue *Comment      `  (@@|("}"|"\n"|";"))`
-	BlankLine         string        `| @BlankLine`
-	SubBegin          string        `| @"{" "\n"?`
-	Sub               []*FuncEntity `  @@*`
-	SubEnd            string        `  @"}"?)`
+	OutputFixer string        `( @OutputFixer "\n"`
+	Flow        *Flow         `| @@`
+	PreValue    string        `| @PreValue?`
+	Value       *Expr         `  @@ ("}"|"\n"|";")`
+	BlankLine   string        `| @BlankLine`
+	SubBegin    string        `| @"{" "\n"?`
+	Sub         []*FuncEntity `  @@*`
+	SubEnd      string        `  @"}"?)`
+
+	Tokens []lexer.Token
 }
 
 // フロー制御文
 type Flow struct {
 	FlowKey         string       `( @FlowKey`
-	FlowKeyForEach  string       `| ( @"for""each"`
+	FlowKeyForEach  string       `| ( @FlowKeyForEach`
 	FlowExprForEach *ExprForEach `    @@)`
-	FlowKeyFor      string       `| ( @"for"`
+	FlowKeyFor      string       `| ( @FlowKeyFor`
 	FlowExprFor     *ExprFor     `    @@)`
 	FlowKeyConst    string       `| ( @FlowKeyConst`
 	FlowConst       []*Const     `    (@@ ","?)+)`
@@ -73,7 +78,6 @@ type Flow struct {
 	FlowExpr        *Expr        `    @@))`
 
 	FlowExprEnd           string        `( ("\n"|";")`
-	FlowComment           *Comment      `  @@*`
 	FlowOneLineSub        *FuncEntity   `  @@`
 	FlowOneLineSubEnd     string        `  @("\n"|";")?`
 	FlowMultiLineSubBegin string        `| @"{" "\n"?`
@@ -161,16 +165,16 @@ type Unary struct {
 
 // 単項: 左辺と右辺の両方になりうる式
 type Primary struct {
-	Const   *Const `( @@`
-	SubExpr *Expr  `| "(" @@ ")")`
+	Const     *Const  `( @@`
+	ArrayArgs []*Expr `  ("[" @@ "]")*`
+	SubExpr   *Expr   `| "(" @@ ")")`
 }
 
 type Const struct {
-	String    *String    `( @@`
-	FuncCall  *FuncCall  `| @@`
-	ArrayCall *ArrayCall `| @@`
-	Number    *Number    `| @@`
-	Ident     string     `| @Ident)`
+	String   *String   `( @@`
+	FuncCall *FuncCall `| @@`
+	Number   *Number   `| @@`
+	Ident    string    `| @Ident)`
 }
 
 type String struct {
@@ -183,11 +187,6 @@ type String struct {
 type FuncCall struct {
 	FuncName string  `@Ident`
 	FuncArgs []*Expr `"(" (@@ ","?)* ")"`
-}
-
-type ArrayCall struct {
-	ArrayName string  `@Ident`
-	ArrayArgs []*Expr `("[" @@ "]")+`
 }
 
 // 目的はパースなのでstringでとっていい
