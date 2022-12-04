@@ -27,12 +27,11 @@ func parse(filename string) *Root {
 	src := rep.ReplaceAllString(string(b), "$1")
 	src = repLF.ReplaceAllString(src, "\n")
 
-	if err := os.WriteFile(filepath.Join(dirname, "replaced_"+filename), []byte(src), 0644); err != nil {
-		panic(err)
-	}
-
 	actual, err := parser.ParseString("", string(src))
 	if err != nil {
+		if err := os.WriteFile(filepath.Join(dirname, "replaced_"+filename), []byte(src), 0644); err != nil {
+			panic(err)
+		}
 		fmt.Println("NG:", filename)
 		log.Fatal(err)
 	} else {
