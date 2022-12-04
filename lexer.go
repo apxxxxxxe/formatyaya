@@ -15,7 +15,7 @@ var (
 			{Name: `DefinitionTab`, Pattern: `(#globaldefine|#define)	+`, Action: lexer.Push("DefinitionTabRule")},
 			{Name: "FuncName", Pattern: `[a-zA-Z_]([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる
 			{Name: "Colon", Pattern: `:`, Action: nil},
-			{Name: "FuncType", Pattern: `(array|void)`, Action: nil},
+			{Name: "FuncType", Pattern: `(array|void|nonoverlap|sequential)`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			lexer.Include("Comments"),
 		},
@@ -30,6 +30,8 @@ var (
 			{Name: `LineEnd`, Pattern: `(\n|;)`, Action: lexer.Pop()},
 		},
 		"FuncRule": {
+			{Name: `PreValue`, Pattern: `(void)`, Action: nil},
+			{Name: `BlankLine`, Pattern: `^[ 	]*\n`, Action: nil},
 			{Name: `Space`, Pattern: ` +`, Action: nil},
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
 			{Name: `ExprEnd`, Pattern: `;`, Action: nil},
@@ -54,6 +56,7 @@ var (
 			{Name: "FlowKey", Pattern: `else`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			{Name: "HexNum", Pattern: `0x[0-9A-za-z]+`, Action: nil},
+			{Name: "BinNum", Pattern: `0b[01]+`, Action: nil},
 			{Name: "Float", Pattern: `\d+\.\d+`, Action: nil},
 			{Name: "Int", Pattern: `\d+`, Action: nil},
 			{Name: "Ident", Pattern: `[a-zA-Z_]([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる

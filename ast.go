@@ -41,21 +41,23 @@ type Func struct {
 
 	LF string `| "\n"?`
 
-	FuncEntitiesBegin string        `@"{"`
+	FuncEntitiesBegin string        `@"{" "\n"?`
 	FuncEntities      []*FuncEntity `@@*`
-	FuncEntitiesEnd   string        `@"}"`
+	FuncEntitiesEnd   string        `@"}"?`
 }
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	Separator string        `( @Separator`
-	Comment   *Comment      `| @@`
-	Flow      *Flow         `| @@`
-	Value     *Expr         `| @@`
-	LF        string        `| "\n"`
-	SubBegin  string        `| @"{"`
-	Sub       []*FuncEntity `  @@*`
-	SubEnd    string        `  @"}")`
+	Separator         string        `( @Separator "\n"`
+	Comment           *Comment      `| @@`
+	Flow              *Flow         `| @@`
+	PreValue          string        `| @PreValue?`
+	Value             *Expr         `  @@`
+	CommentAfterValue *Comment      `  @@? ("}"|"\n"|";")`
+	BlankLine         string        `| @BlankLine`
+	SubBegin          string        `| @"{" "\n"?`
+	Sub               []*FuncEntity `  @@*`
+	SubEnd            string        `  @"}"?)`
 }
 
 // フロー制御文
@@ -74,9 +76,9 @@ type Flow struct {
 	FlowComment           *Comment      `  @@*`
 	FlowOneLineSub        *FuncEntity   `  @@`
 	FlowOneLineSubEnd     string        `  @("\n"|";")?`
-	FlowMultiLineSubBegin string        `| @"{"`
+	FlowMultiLineSubBegin string        `| @"{" "\n"?`
 	FlowMultiLineSub      []*FuncEntity `  @@*`
-	FlowMultiLineSubEnd   string        `  @"}")`
+	FlowMultiLineSubEnd   string        `  @"}"?)`
 }
 
 type ExprFor struct {
@@ -191,6 +193,7 @@ type ArrayCall struct {
 // 目的はパースなのでstringでとっていい
 type Number struct {
 	Hex   string `( @HexNum`
+	Bin   string `| @BinNum`
 	Float string `| @Float`
 	Int   string `| @Int)`
 }

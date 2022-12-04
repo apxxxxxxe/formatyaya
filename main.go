@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/alecthomas/repr"
 )
 
 const dirname = "files"
@@ -32,6 +34,7 @@ func parse(filename string) *Root {
 		if err := os.WriteFile(filepath.Join(dirname, "replaced_"+filename), []byte(src), 0644); err != nil {
 			panic(err)
 		}
+		repr.Println(actual)
 		fmt.Println("NG:", filename)
 		log.Fatal(err)
 	} else {
@@ -105,8 +108,6 @@ func format(value interface{}, depth int, parentName string) string {
 				}
 
 				switch ft.Name {
-				case "RootEntity":
-					sl += s + "\n"
 				case "FuncArgs":
 					sl += "(" + s + ")"
 				case "ArrayArgs":
@@ -127,8 +128,8 @@ func format(value interface{}, depth int, parentName string) string {
 					sl += s + "\n"
 				case "FlowOneLineSub":
 					sl += "\n" + strings.Repeat(indent, depth) + s
-				case "FlowMultiLineSubEnd":
-					sl += strings.Repeat(indent, depth) + s + "\n"
+				case "FuncEntitiesEnd", "FlowMultiLineSubEnd":
+					sl += strings.Repeat(indent, depth) + s
 				case "Separator", "CommentMultiLine", "Value", "SubEnd":
 					sl += s + "\n"
 				case "DefSpaceBefore":
@@ -164,7 +165,6 @@ func main() {
 		fmt.Println(f.Name())
 
 		actual := parse(f.Name())
-		// repr.Println(actual)
 
 		if err := os.WriteFile("out.txt", []byte(format(actual, 0, "")), 0644); err != nil {
 			panic(err)
