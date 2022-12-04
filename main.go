@@ -16,8 +16,9 @@ import (
 const dirname = "files"
 
 var (
-	rep   = regexp.MustCompile(`([^*])/(\r\n|\r|\n)[\t ]*`)
-	repLF = regexp.MustCompile(`(\r\n|\r|\n)`)
+	rep              = regexp.MustCompile(`([^*])/(\r\n|\r|\n)[\t ]*`)
+	repLF            = regexp.MustCompile(`(\r\n|\r|\n)`)
+	repTrailingSpace = regexp.MustCompile(`[\t ]+\n`)
 )
 
 func parse(filename string) *Root {
@@ -28,6 +29,7 @@ func parse(filename string) *Root {
 
 	src := rep.ReplaceAllString(string(b), "$1")
 	src = repLF.ReplaceAllString(src, "\n")
+	src = repTrailingSpace.ReplaceAllString(src, "\n")
 
 	actual, err := parser.ParseString("", string(src))
 	if err != nil {
@@ -153,10 +155,10 @@ func main() {
 		panic(err)
 	}
 
-	for i, f := range finfo {
-		if i >= 3 {
-			break
-		}
+	for _, f := range finfo {
+		// if i >= 3 {
+		// 	break
+		// }
 
 		if strings.HasPrefix(f.Name(), "replaced_") {
 			continue
