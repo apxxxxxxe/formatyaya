@@ -48,12 +48,12 @@ type Func struct {
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	Separator         string        `( @Separator "\n"`
+	OutputFixer       string        `( @OutputFixer "\n"`
 	Comment           *Comment      `| @@`
 	Flow              *Flow         `| @@`
 	PreValue          string        `| @PreValue?`
 	Value             *Expr         `  @@`
-	CommentAfterValue *Comment      `  @@? ("}"|"\n"|";")`
+	CommentAfterValue *Comment      `  (@@|("}"|"\n"|";"))`
 	BlankLine         string        `| @BlankLine`
 	SubBegin          string        `| @"{" "\n"?`
 	Sub               []*FuncEntity `  @@*`

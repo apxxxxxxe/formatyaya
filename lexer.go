@@ -13,7 +13,7 @@ var (
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
 			{Name: `DefinitionSpace`, Pattern: `(#globaldefine|#define) +`, Action: lexer.Push("DefinitionSpaceRule")},
 			{Name: `DefinitionTab`, Pattern: `(#globaldefine|#define)	+`, Action: lexer.Push("DefinitionTabRule")},
-			{Name: "FuncName", Pattern: `[a-zA-Z_]([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる
+			{Name: "FuncName", Pattern: `([a-zA-Z_\x{3041}-\x{3096}\x{30A1}-\x{30FA}々〇〻\x{3400}-\x{9FFF}\x{F900}-\x{FAFF}]|[\x{D840}-\x{D87F}][\x{DC00}-\x{DFFF}])([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる
 			{Name: "Colon", Pattern: `:`, Action: nil},
 			{Name: "FuncType", Pattern: `(array|void|nonoverlap|sequential)`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
@@ -43,7 +43,7 @@ var (
 			{Name: "HearDocumentDouble", Pattern: `<<"([\n	 ]|.)*">>`, Action: nil},
 			{Name: `OperAsign`, Pattern: `(=|:=|\+=|-=|\*=|/=|%=|\+:=|-:=|\*:=|/:=|%:=|,=)`, Action: nil},
 			{Name: `OperAsignUnary`, Pattern: `[^ 	](--|\+\+)`, Action: nil},
-			{Name: `Separator`, Pattern: `--`, Action: nil},
+			{Name: `OutputFixer`, Pattern: `--`, Action: nil},
 			{Name: `OperUnary`, Pattern: `(!|-)`, Action: nil},
 			{Name: `OperCalc`, Pattern: `(-|\+|/|\*|%)`, Action: nil},
 			{Name: `OperComp`, Pattern: `(==|!=|>=|<=|>|<|_in_|!_in_)`, Action: nil},
@@ -59,7 +59,8 @@ var (
 			{Name: "BinNum", Pattern: `0b[01]+`, Action: nil},
 			{Name: "Float", Pattern: `\d+\.\d+`, Action: nil},
 			{Name: "Int", Pattern: `\d+`, Action: nil},
-			{Name: "Ident", Pattern: `[a-zA-Z_]([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる
+			{Name: "Ident", Pattern: `([a-zA-Z_\x{3041}-\x{3096}\x{30A1}-\x{30FA}々〇〻\x{3400}-\x{9FFF}\x{F900}-\x{FAFF}]|[\x{D840}-\x{D87F}][\x{DC00}-\x{DFFF}])([^ \n!"#$%&()*+,-/:;<=>?@\[\]{|}]|\.)*`, Action: nil}, //TODO:`も禁止文字に入れる
+
 			{Name: "FuncCall", Pattern: `\(`, Action: lexer.Push("FuncCallRule")},
 			{Name: "ArrayCall", Pattern: `\[`, Action: lexer.Push("ArrayCallRule")},
 			{Name: "FuncEnd", Pattern: `\}`, Action: lexer.Pop()},
