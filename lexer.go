@@ -20,18 +20,13 @@ var (
 			lexer.Include("Comments"),
 		},
 		"DefinitionSpaceRule": {
-			{Name: `Space`, Pattern: ` +`, Action: nil},
-			{Name: `DefinitionSpaceChar`, Pattern: `[^\n ]+`, Action: nil},
-			{Name: `LineEnd`, Pattern: `(\n|;)`, Action: lexer.Pop()},
+			{Name: `DefinitionSpaceChar`, Pattern: `[^\n ]+ +[^\n ]+`, Action: lexer.Pop()},
 		},
 		"DefinitionTabRule": {
-			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
-			{Name: `DefinitionTabChar`, Pattern: `[^\n\t]+`, Action: nil},
-			{Name: `LineEnd`, Pattern: `(\n|;)`, Action: lexer.Pop()},
+			{Name: `DefinitionTabChar`, Pattern: `[^\n\t]+	+[^\n\t]+`, Action: lexer.Pop()},
 		},
 		"FuncRule": {
 			{Name: `PreValue`, Pattern: `(void)`, Action: nil},
-			{Name: `BlankLine`, Pattern: `^[ 	]*\n`, Action: nil},
 			{Name: `Space`, Pattern: ` +`, Action: nil},
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
 			{Name: `ExprEnd`, Pattern: `;`, Action: nil},
@@ -39,8 +34,8 @@ var (
 			lexer.Include("Comments"),
 			{Name: "SingleQuoteString", Pattern: `'`, Action: lexer.Push("SingleQuoteStringRule")},
 			{Name: "DoubleQuoteString", Pattern: `"`, Action: lexer.Push("DoubleQuoteStringRule")},
-			{Name: "HearDocumentSingle", Pattern: `<<'([\n	 ]|.)*'>>`, Action: nil},
-			{Name: "HearDocumentDouble", Pattern: `<<"([\n	 ]|.)*">>`, Action: nil},
+			{Name: "HearDocumentSingle", Pattern: `(?sU)<<'.*'>>`, Action: nil},
+			{Name: "HearDocumentDouble", Pattern: `(?sU)<<".*">>`, Action: nil},
 			{Name: `OperAsign`, Pattern: `(=|:=|\+=|-=|\*=|/=|%=|\+:=|-:=|\*:=|/:=|%:=|,=)`, Action: nil},
 			{Name: `OperAsignUnary`, Pattern: `[^ 	](--|\+\+)`, Action: nil},
 			{Name: `OutputFixer`, Pattern: `--`, Action: nil},
@@ -53,7 +48,7 @@ var (
 			{Name: "FlowKeyConst", Pattern: `when`, Action: nil},
 			{Name: "FlowKeyForEach", Pattern: `foreach `, Action: nil},
 			{Name: "FlowKeyFor", Pattern: `for `, Action: nil},
-			{Name: "FlowKey", Pattern: `else`, Action: nil},
+			{Name: "FlowKey", Pattern: `(else|others)`, Action: nil},
 			{Name: `Function`, Pattern: `\{`, Action: lexer.Push("FuncRule")},
 			{Name: "HexNum", Pattern: `0x[0-9A-za-z]+`, Action: nil},
 			{Name: "BinNum", Pattern: `0b[01]+`, Action: nil},
@@ -83,14 +78,11 @@ var (
 		},
 		"Comments": {
 			{Name: `CommentOneLine`, Pattern: `//[^\n]*`, Action: nil},
-			{Name: "CommentMultiLine", Pattern: `/\*(\n|.)*\*/`, Action: nil},
+			{Name: "CommentMultiLine", Pattern: `(?sU)/\*.*\*/`, Action: nil},
 		},
 	})
 	parser = participle.MustBuild[Root](
 		participle.Lexer(def),
-		participle.Elide("Space"),
-		participle.Elide("TabSpace"),
-		participle.Elide("CommentOneLine"),
-		participle.Elide("CommentMultiLine"),
+		participle.Elide("Space", "TabSpace", "LF", "ExprEnd", "CommentOneLine", "CommentMultiLine"),
 	)
 )

@@ -6,14 +6,14 @@ import (
 
 type Root struct {
 	Rootentities []*RootEntity `@@*`
+
+	Tokens []lexer.Token
 }
 
 // Root内で出現しうる記述
 type RootEntity struct {
 	Definition *Definition `( @@ `
-	DefLF      string      `  "\n"`
-	Function   *Func       `| @@`
-	LF         string      `| @"\n")`
+	Function   *Func       `| @@)`
 
 	Tokens []lexer.Token
 }
@@ -21,44 +21,49 @@ type RootEntity struct {
 type Comment struct {
 	CommentOneLine   string `( @CommentOneLine`
 	CommentMultiLine string `| @CommentMultiLine)`
+
+	Tokens []lexer.Token
 }
 
 type Definition struct {
 	DefinitionSpace *DefinitionSpace `( @@`
 	DefinitionTab   *DefinitionTab   `| @@)`
+
+	Tokens []lexer.Token
 }
 
 type DefinitionSpace struct {
-	DefSpaceKey    string `@DefinitionSpace`
-	DefSpaceBefore string `@DefinitionSpaceChar Space`
-	DefSpaceAfter  string `@DefinitionSpaceChar`
+	DefSpaceKey   string `@DefinitionSpace`
+	DefSpaceValue string `@DefinitionSpaceChar`
+
+	Tokens []lexer.Token
 }
 
 type DefinitionTab struct {
-	DefTabKey    string `@DefinitionTab`
-	DefTabBefore string `@DefinitionTabChar TabSpace`
-	DefTabAfter  string `@DefinitionTabChar`
+	DefTabKey   string `@DefinitionTab`
+	DefTabValue string `@DefinitionTabChar`
+
+	Tokens []lexer.Token
 }
 
 type Func struct {
 	FunctionName string `@FuncName`
 	FunctionType string `(":" @("array"|"void"|"nonoverlap"|"sequential"))?` // @FuncTypeだと認識しないので即値で指定
 
-	LF string `| "\n"?`
-
-	FuncEntitiesBegin string        `@"{" "\n"?`
+	FuncEntitiesBegin string        `@"{"`
 	FuncEntities      []*FuncEntity `@@*`
 	FuncEntitiesEnd   string        `@"}"?`
+
+	Tokens []lexer.Token
 }
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	OutputFixer string        `( @OutputFixer "\n"`
+	OutputFixer string        `( @OutputFixer`
 	Flow        *Flow         `| @@`
 	PreValue    string        `| @PreValue?`
-	Value       *Expr         `  @@ ("}"|"\n"|";")`
-	BlankLine   string        `| @BlankLine`
-	SubBegin    string        `| @"{" "\n"?`
+	Value       *Expr         `  @@`
+	SubBegin    string        `| @"{"`
 	Sub         []*FuncEntity `  @@*`
 	SubEnd      string        `  @"}"?)`
 
@@ -77,28 +82,34 @@ type Flow struct {
 	FlowKeyExpr     string       `| ( @FlowKeyExpr`
 	FlowExpr        *Expr        `    @@))`
 
-	FlowExprEnd           string        `( ("\n"|";")`
-	FlowOneLineSub        *FuncEntity   `  @@`
-	FlowOneLineSubEnd     string        `  @("\n"|";")?`
-	FlowMultiLineSubBegin string        `| @"{" "\n"?`
+	FlowOneLineSub        *FuncEntity   `( @@`
+	FlowMultiLineSubBegin string        `| @"{"`
 	FlowMultiLineSub      []*FuncEntity `  @@*`
-	FlowMultiLineSubEnd   string        `  @"}"?)`
+	FlowMultiLineSubEnd   string        `  @"}")`
+
+	Tokens []lexer.Token
 }
 
 type ExprFor struct {
 	ForInitAsign *Asign `@@ ";"`
 	ForEndExpr   *Expr  `@@ ";"`
 	ForLoopAsign *Asign `@@`
+
+	Tokens []lexer.Token
 }
 
 type ExprForEach struct {
 	Array *Enum  `@@ ";"`
 	Ident string `@Ident`
+
+	Tokens []lexer.Token
 }
 
 // 条件式
 type Expr struct {
 	Enum *Enum `@@`
+
+	Tokens []lexer.Token
 }
 
 type Enum struct {
@@ -106,6 +117,8 @@ type Enum struct {
 
 	OperEnum string `( @","`
 	Right    *Enum  `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 代入式
@@ -114,6 +127,8 @@ type Asign struct {
 
 	OperAsign string `( @OperAsign`
 	Right     *Asign `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 論理演算式Or
@@ -122,6 +137,8 @@ type Or struct {
 
 	OperOr string `( @"||"`
 	Right  *Or    `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 論理演算式And
@@ -130,6 +147,8 @@ type And struct {
 
 	OperAnd string `( @"&&"`
 	Right   *And   `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 比較演算式
@@ -138,6 +157,8 @@ type Comparison struct {
 
 	OperComp string      `( @("=" "="|"!""="|">="|"<="|">"|"<"|"_in_"|"!""_in_")`
 	Right    *Comparison `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 加減法式
@@ -146,6 +167,8 @@ type Addition struct {
 
 	OperAdd string    `( @("+"|"-")`
 	Right   *Addition `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 乗除法式
@@ -154,6 +177,8 @@ type Multipulation struct {
 
 	OperMulti string         `( @("*"|"/"|"%")`
 	Right     *Multipulation `  @@)?`
+
+	Tokens []lexer.Token
 }
 
 // 単項演算式
@@ -161,6 +186,8 @@ type Unary struct {
 	Unary       string   `(@OperUnary)?`
 	Primary     *Primary `@@`
 	OperCalcOne string   `@("+" "+"|"--")?`
+
+	Tokens []lexer.Token
 }
 
 // 単項: 左辺と右辺の両方になりうる式
@@ -168,6 +195,8 @@ type Primary struct {
 	Const     *Const  `( @@`
 	ArrayArgs []*Expr `  ("[" @@ "]")*`
 	SubExpr   *Expr   `| "(" @@ ")")`
+
+	Tokens []lexer.Token
 }
 
 type Const struct {
@@ -175,6 +204,8 @@ type Const struct {
 	FuncCall *FuncCall `| @@`
 	Number   *Number   `| @@`
 	Ident    string    `| @Ident)`
+
+	Tokens []lexer.Token
 }
 
 type String struct {
@@ -182,11 +213,15 @@ type String struct {
 	DoubleQuote        string `| @"\"" @DoubleQuoteChar? @"\""`
 	HearDocumentSingle string `| @HearDocumentSingle`
 	HearDocumentDouble string `| @HearDocumentDouble)`
+
+	Tokens []lexer.Token
 }
 
 type FuncCall struct {
 	FuncName string  `@Ident`
 	FuncArgs []*Expr `"(" (@@ ","?)* ")"`
+
+	Tokens []lexer.Token
 }
 
 // 目的はパースなのでstringでとっていい
@@ -195,4 +230,6 @@ type Number struct {
 	Bin   string `| @BinNum`
 	Float string `| @Float`
 	Int   string `| @Int)`
+
+	Tokens []lexer.Token
 }
