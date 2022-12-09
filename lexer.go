@@ -5,9 +5,12 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+type TokenDict = map[lexer.TokenType]string
+
 var (
 	def = lexer.MustStateful(lexer.Rules{
 		"Root": { // Rootは特別な名前　これが基点のRule
+			{Name: "BlankLine", Pattern: `\n\n`, Action: nil},
 			{Name: "LF", Pattern: `\n`, Action: nil},
 			{Name: `Space`, Pattern: ` +`, Action: nil},
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
@@ -30,6 +33,7 @@ var (
 			{Name: `Space`, Pattern: ` +`, Action: nil},
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
 			{Name: `ExprEnd`, Pattern: `;`, Action: nil},
+			{Name: "BlankLine", Pattern: `\n\n`, Action: nil},
 			{Name: "LF", Pattern: `\n`, Action: nil},
 			lexer.Include("Comments"),
 			{Name: "SingleQuoteString", Pattern: `'`, Action: lexer.Push("SingleQuoteStringRule")},
@@ -83,6 +87,16 @@ var (
 	})
 	parser = participle.MustBuild[Root](
 		participle.Lexer(def),
-		participle.Elide("Space", "TabSpace", "LF", "ExprEnd", "CommentOneLine", "CommentMultiLine"),
+		participle.Elide("Space", "TabSpace", "BlankLine", "LF", "CommentOneLine", "CommentMultiLine"),
 	)
+	dict = makeDict()
 )
+
+func makeDict() TokenDict {
+	symbols := parser.Lexer().Symbols()
+	dict := TokenDict{}
+	for k, v := range symbols {
+		dict[v] = k
+	}
+	return dict
+}

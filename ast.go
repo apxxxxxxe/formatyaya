@@ -1,73 +1,168 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+const indent = "  "
+
+func addIndent(s string) string {
+	return indent + strings.TrimRight(strings.ReplaceAll(s, "\n", "\n"+indent), indent)
+}
+
 type Root struct {
 	Rootentities []*RootEntity `@@*`
+}
 
-	Tokens []lexer.Token
+func (r Root) String() string {
+	result := ""
+	for _, r := range r.Rootentities {
+		result += r.String()
+	}
+	return result
 }
 
 // Root内で出現しうる記述
 type RootEntity struct {
+	Tokens     []lexer.Token
 	Definition *Definition `( @@ `
 	Function   *Func       `| @@)`
+}
 
-	Tokens []lexer.Token
+func (r RootEntity) String() string {
+	comments := ""
+	isInSub := false
+	for _, t := range r.Tokens {
+		if dict[t.Type] == "Function" {
+			isInSub = true
+		} else if dict[t.Type] == "FuncEnd" {
+			isInSub = false
+		} else if !isInSub {
+			if dict[t.Type] == "CommentOneLine" {
+				comments += t.Value + "\n"
+			} else if dict[t.Type] == "CommentMultiLine" {
+				comments += t.Value + "\n"
+			} else if dict[t.Type] == "BlankLine" {
+				comments += "\n"
+			}
+		}
+	}
+
+	result := ""
+	if r.Definition != nil {
+		result += r.Definition.String() + "\n"
+	} else {
+		result += r.Function.String()
+	}
+	return comments + result
 }
 
 type Comment struct {
 	CommentOneLine   string `( @CommentOneLine`
 	CommentMultiLine string `| @CommentMultiLine)`
+}
 
-	Tokens []lexer.Token
+func (c Comment) String() string {
+	return c.CommentOneLine + c.CommentMultiLine
 }
 
 type Definition struct {
 	DefinitionSpace *DefinitionSpace `( @@`
 	DefinitionTab   *DefinitionTab   `| @@)`
+}
 
-	Tokens []lexer.Token
+func (d Definition) String() string {
+	if d.DefinitionSpace != nil {
+		return d.DefinitionSpace.String()
+	} else {
+		return d.DefinitionTab.String()
+	}
 }
 
 type DefinitionSpace struct {
 	DefSpaceKey   string `@DefinitionSpace`
 	DefSpaceValue string `@DefinitionSpaceChar`
+}
 
-	Tokens []lexer.Token
+func (d DefinitionSpace) String() string {
+	return d.DefSpaceKey + d.DefSpaceValue
 }
 
 type DefinitionTab struct {
 	DefTabKey   string `@DefinitionTab`
 	DefTabValue string `@DefinitionTabChar`
+}
 
-	Tokens []lexer.Token
+func (d DefinitionTab) String() string {
+	return d.DefTabKey + d.DefTabValue
 }
 
 type Func struct {
 	FunctionName string `@FuncName`
 	FunctionType string `(":" @("array"|"void"|"nonoverlap"|"sequential"))?` // @FuncTypeだと認識しないので即値で指定
 
-	FuncEntitiesBegin string        `@"{"`
-	FuncEntities      []*FuncEntity `@@*`
-	FuncEntitiesEnd   string        `@"}"?`
+	FuncEntities []*FuncEntity `"{" @@* "}"`
+}
 
-	Tokens []lexer.Token
+func (f Func) String() string {
+	funcName := f.FunctionName
+	if f.FunctionType != "" {
+		funcName += " : " + f.FunctionType
+	}
+	entities := ""
+	for _, e := range f.FuncEntities {
+		entities += e.String() + "\n"
+	}
+	return funcName + "\n{\n" + addIndent(entities) + "}\n"
 }
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
+	Tokens      []lexer.Token
 	OutputFixer string        `( @OutputFixer`
 	Flow        *Flow         `| @@`
 	PreValue    string        `| @PreValue?`
 	Value       *Expr         `  @@`
-	SubBegin    string        `| @"{"`
-	Sub         []*FuncEntity `  @@*`
-	SubEnd      string        `  @"}"?)`
+	ValueEnd    string        `  ";"?`
+	Sub         []*FuncEntity `| "{" @@* "}")`
+}
 
-	Tokens []lexer.Token
+func (f FuncEntity) String() string {
+	comments := ""
+	isInSub := false
+	for _, t := range f.Tokens {
+		if dict[t.Type] == "Function" {
+			isInSub = true
+		} else if dict[t.Type] == "FuncEnd" {
+			isInSub = false
+		} else if !isInSub {
+			if dict[t.Type] == "CommentOneLine" {
+				comments += t.Value + "\n"
+			} else if dict[t.Type] == "CommentMultiLine" {
+				comments += t.Value + "\n"
+			} else if dict[t.Type] == "BlankLine" {
+				comments += "\n"
+			}
+		}
+	}
+
+	result := ""
+	if f.OutputFixer != "" {
+		result = f.OutputFixer
+	} else if f.Flow != nil {
+		result = f.Flow.String()
+	} else if f.Value != nil {
+		result = f.PreValue + f.Value.String()
+	} else {
+		lines := ""
+		for _, s := range f.Sub {
+			lines += s.String() + "\n"
+		}
+		result = "{\n" + addIndent(lines) + "}"
+	}
+	return comments + result
 }
 
 // フロー制御文
@@ -82,34 +177,69 @@ type Flow struct {
 	FlowKeyExpr     string       `| ( @FlowKeyExpr`
 	FlowExpr        *Expr        `    @@))`
 
-	FlowOneLineSub        *FuncEntity   `( @@`
-	FlowMultiLineSubBegin string        `| @"{"`
-	FlowMultiLineSub      []*FuncEntity `  @@*`
-	FlowMultiLineSubEnd   string        `  @"}")`
+	FlowMultiLineSub []*FuncEntity `( "{" @@* "}"`
+	FlowOneLineSub   *FuncEntity   `| ";"? @@)`
+}
 
-	Tokens []lexer.Token
+func (f Flow) String() string {
+	upper := ""
+	if f.FlowKey != "" {
+		upper = f.FlowKey
+	} else if f.FlowKeyForEach != "" {
+		upper = f.FlowKeyForEach + " " + f.FlowExprForEach.String()
+	} else if f.FlowKeyFor != "" {
+		upper = f.FlowKeyFor + " " + f.FlowExprFor.String()
+	} else if f.FlowKeyConst != "" {
+		consts := ""
+		for _, c := range f.FlowConst {
+			consts += c.String() + ","
+		}
+		consts = strings.TrimRight(consts, ", ")
+		upper = f.FlowKeyConst + " " + consts
+	} else {
+		upper = f.FlowKeyExpr + " " + f.FlowExpr.String()
+	}
+
+	lower := ""
+	if f.FlowOneLineSub != nil {
+		lower = "\n" + addIndent(f.FlowOneLineSub.String())
+	} else {
+		lower = ""
+		for _, f := range f.FlowMultiLineSub {
+			lower += f.String() + "\n"
+		}
+		lower = " {\n" + addIndent(lower) + "}"
+	}
+
+	return upper + lower
 }
 
 type ExprFor struct {
 	ForInitAsign *Asign `@@ ";"`
 	ForEndExpr   *Expr  `@@ ";"`
 	ForLoopAsign *Asign `@@`
+}
 
-	Tokens []lexer.Token
+func (e ExprFor) String() string {
+	return e.ForInitAsign.String() + "; " + e.ForEndExpr.String() + "; " + e.ForLoopAsign.String()
 }
 
 type ExprForEach struct {
 	Array *Enum  `@@ ";"`
 	Ident string `@Ident`
+}
 
-	Tokens []lexer.Token
+func (e ExprForEach) String() string {
+	return e.Array.String() + "; " + e.Ident
 }
 
 // 条件式
 type Expr struct {
 	Enum *Enum `@@`
+}
 
-	Tokens []lexer.Token
+func (e Expr) String() string {
+	return e.Enum.String()
 }
 
 type Enum struct {
@@ -117,8 +247,14 @@ type Enum struct {
 
 	OperEnum string `( @","`
 	Right    *Enum  `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (e Enum) String() string {
+	right := ""
+	if e.Right != nil {
+		right = e.OperEnum + " " + e.Right.String()
+	}
+	return e.Asign.String() + right
 }
 
 // 代入式
@@ -127,8 +263,14 @@ type Asign struct {
 
 	OperAsign string `( @OperAsign`
 	Right     *Asign `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (a Asign) String() string {
+	right := ""
+	if a.Right != nil {
+		right = " " + a.OperAsign + " " + a.Right.String()
+	}
+	return a.Or.String() + right
 }
 
 // 論理演算式Or
@@ -137,8 +279,14 @@ type Or struct {
 
 	OperOr string `( @"||"`
 	Right  *Or    `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (o Or) String() string {
+	right := ""
+	if o.Right != nil {
+		right = " " + o.OperOr + " " + o.Right.String()
+	}
+	return o.And.String() + right
 }
 
 // 論理演算式And
@@ -147,8 +295,14 @@ type And struct {
 
 	OperAnd string `( @"&&"`
 	Right   *And   `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (a And) String() string {
+	right := ""
+	if a.Right != nil {
+		right = " " + a.OperAnd + " " + a.Right.String()
+	}
+	return a.Comparison.String() + right
 }
 
 // 比較演算式
@@ -157,8 +311,14 @@ type Comparison struct {
 
 	OperComp string      `( @("=" "="|"!""="|">="|"<="|">"|"<"|"_in_"|"!""_in_")`
 	Right    *Comparison `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (c Comparison) String() string {
+	right := ""
+	if c.Right != nil {
+		right = " " + c.OperComp + " " + c.Right.String()
+	}
+	return c.Addition.String() + right
 }
 
 // 加減法式
@@ -167,8 +327,14 @@ type Addition struct {
 
 	OperAdd string    `( @("+"|"-")`
 	Right   *Addition `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (a Addition) String() string {
+	right := ""
+	if a.Right != nil {
+		right = " " + a.OperAdd + " " + a.Right.String()
+	}
+	return a.Multipulation.String() + right
 }
 
 // 乗除法式
@@ -177,8 +343,14 @@ type Multipulation struct {
 
 	OperMulti string         `( @("*"|"/"|"%")`
 	Right     *Multipulation `  @@)?`
+}
 
-	Tokens []lexer.Token
+func (m Multipulation) String() string {
+	right := ""
+	if m.Right != nil {
+		right = " " + m.OperMulti + " " + m.Right.String()
+	}
+	return m.Unary.String() + right
 }
 
 // 単項演算式
@@ -186,8 +358,10 @@ type Unary struct {
 	Unary       string   `(@OperUnary)?`
 	Primary     *Primary `@@`
 	OperCalcOne string   `@("+" "+"|"--")?`
+}
 
-	Tokens []lexer.Token
+func (u Unary) String() string {
+	return u.Unary + u.Primary.String() + u.OperCalcOne
 }
 
 // 単項: 左辺と右辺の両方になりうる式
@@ -195,17 +369,37 @@ type Primary struct {
 	Const     *Const  `( @@`
 	ArrayArgs []*Expr `  ("[" @@ "]")*`
 	SubExpr   *Expr   `| "(" @@ ")")`
+}
 
-	Tokens []lexer.Token
+func (p Primary) String() string {
+	if p.Const != nil {
+		args := ""
+		for _, e := range p.ArrayArgs {
+			args += "[" + e.String() + "]"
+		}
+		return p.Const.String() + args
+	} else {
+		return p.SubExpr.String()
+	}
 }
 
 type Const struct {
-	String   *String   `( @@`
+	CString  *String   `( @@`
 	FuncCall *FuncCall `| @@`
 	Number   *Number   `| @@`
 	Ident    string    `| @Ident)`
+}
 
-	Tokens []lexer.Token
+func (c Const) String() string {
+	if c.CString != nil {
+		return c.CString.String()
+	} else if c.FuncCall != nil {
+		return c.FuncCall.String()
+	} else if c.Number != nil {
+		return c.Number.String()
+	} else {
+		return c.Ident
+	}
 }
 
 type String struct {
@@ -213,15 +407,30 @@ type String struct {
 	DoubleQuote        string `| @"\"" @DoubleQuoteChar? @"\""`
 	HearDocumentSingle string `| @HearDocumentSingle`
 	HearDocumentDouble string `| @HearDocumentDouble)`
+}
 
-	Tokens []lexer.Token
+func (s String) String() string {
+	return s.SingleQuote + s.DoubleQuote + s.HearDocumentSingle + s.HearDocumentDouble
 }
 
 type FuncCall struct {
-	FuncName string  `@Ident`
-	FuncArgs []*Expr `"(" (@@ ","?)* ")"`
+	FuncName string `@Ident`
+	FuncArgs *Expr  `"(" @@? ")"`
+}
 
-	Tokens []lexer.Token
+func (f FuncCall) String() string {
+	result := f.FuncName + "("
+
+	args := ""
+	if f.FuncArgs != nil {
+		for _, a := range strings.Split(f.FuncArgs.String(), ", ") {
+			args += strings.ReplaceAll(a, " ", "") + ", "
+		}
+		args = strings.TrimRight(args, ", ")
+	}
+
+	result += args + ")"
+	return result
 }
 
 // 目的はパースなのでstringでとっていい
@@ -230,6 +439,8 @@ type Number struct {
 	Bin   string `| @BinNum`
 	Float string `| @Float`
 	Int   string `| @Int)`
+}
 
-	Tokens []lexer.Token
+func (n Number) String() string {
+	return n.Hex + n.Bin + n.Float + n.Int
 }
