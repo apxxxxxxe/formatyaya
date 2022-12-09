@@ -111,11 +111,15 @@ func (f Func) String() string {
 	if f.FunctionType != "" {
 		funcName += " : " + f.FunctionType
 	}
-	entities := ""
-	for _, e := range f.FuncEntities {
-		entities += e.String() + "\n"
+	if len(f.FuncEntities) == 0 {
+		return funcName + "\n{\n}\n"
+	} else {
+		entities := ""
+		for _, e := range f.FuncEntities {
+			entities += e.String() + "\n"
+		}
+		return funcName + "\n{\n" + addIndent(entities) + "}\n"
 	}
-	return funcName + "\n{\n" + addIndent(entities) + "}\n"
 }
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
