@@ -177,7 +177,10 @@ func (f FuncEntity) String() string {
 	} else if f.Flow != nil {
 		result = f.Flow.String()
 	} else if f.Value != nil {
-		result = f.PreValue + f.Value.String()
+		if f.PreValue != "" {
+			result = f.PreValue + " "
+		}
+		result += f.Value.String()
 	} else {
 		if len(f.Sub) == 0 {
 			result = "{\n}"
