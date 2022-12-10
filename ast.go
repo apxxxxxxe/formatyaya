@@ -125,7 +125,7 @@ func (f Func) String() string {
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
 	Tokens      []lexer.Token
-	OutputFixer string        `( @OutputFixer`
+	OutputFixer string        `( @"--"`
 	Flow        *Flow         `| @@`
 	PreValue    string        `| @PreValue?`
 	Value       *Expr         `  @@`
@@ -361,7 +361,7 @@ func (m Multipulation) String() string {
 type Unary struct {
 	Unary       string   `(@OperUnary)?`
 	Primary     *Primary `@@`
-	OperCalcOne string   `@("+" "+"|"--")?`
+	OperCalcOne string   `@((?! Space|TabSpace|LF|BlankLine) ("+" "+"|"--"))?`
 }
 
 func (u Unary) String() string {
