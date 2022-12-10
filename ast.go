@@ -39,13 +39,15 @@ type RootEntity struct {
 
 func (r RootEntity) String() string {
 	comments := ""
-	isInSub := false
+	inSub := 0
 	for _, t := range r.Tokens {
 		if dict[t.Type] == "Function" {
-			isInSub = true
+			inSub++
 		} else if dict[t.Type] == "FuncEnd" {
-			isInSub = false
-		} else if !isInSub {
+			inSub--
+		}
+
+		if inSub == 0 {
 			if dict[t.Type] == "CommentOneLine" {
 				comments += t.Value + "\n"
 			} else if dict[t.Type] == "CommentMultiLine" {
@@ -141,15 +143,15 @@ type FuncEntity struct {
 
 func (f FuncEntity) String() string {
 	comments := ""
-	isInSub := false
+	inSub := 0
 	isInFlowOneLine := false
 	isInFlowPre := false
 	for _, t := range f.Tokens {
 		switch dict[t.Type] {
 		case "Function":
-			isInSub = true
+			inSub++
 		case "FuncEnd":
-			isInSub = false
+			inSub--
 		case "LF", "ExprEnd":
 			isInFlowOneLine = false
 		case "FlowKey", "FlowKeyFor", "FlowKeyForEach", "FlowKeyConst", "FlowKeyExpr":
@@ -161,7 +163,7 @@ func (f FuncEntity) String() string {
 			isInFlowPre = false
 		}
 
-		if !isInFlowOneLine && !isInSub {
+		if !isInFlowOneLine && inSub == 0 {
 			if dict[t.Type] == "CommentOneLine" {
 				comments += t.Value + "\n"
 			} else if dict[t.Type] == "CommentMultiLine" {
