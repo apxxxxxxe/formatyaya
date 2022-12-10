@@ -219,9 +219,9 @@ func (f Flow) String() string {
 	if f.FlowKey != "" {
 		upper = f.FlowKey
 	} else if f.FlowKeyForEach != "" {
-		upper = f.FlowKeyForEach + " " + f.FlowExprForEach.String()
+		upper = f.FlowKeyForEach + f.FlowExprForEach.String()
 	} else if f.FlowKeyFor != "" {
-		upper = f.FlowKeyFor + " " + f.FlowExprFor.String()
+		upper = f.FlowKeyFor + f.FlowExprFor.String()
 	} else if f.FlowKeyConst != "" {
 		consts := ""
 		for _, c := range f.FlowConst {
@@ -258,7 +258,7 @@ type ExprFor struct {
 }
 
 func (e ExprFor) String() string {
-	return e.ForInitAsign.String() + "; " + e.ForEndExpr.String() + "; " + e.ForLoopAsign.String()
+	return strings.ReplaceAll(e.ForInitAsign.String(), " ", "") + "; " + strings.ReplaceAll(e.ForEndExpr.String(), " ", "") + "; " + e.ForLoopAsign.String()
 }
 
 type ExprForEach struct {
