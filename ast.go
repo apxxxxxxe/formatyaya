@@ -186,7 +186,7 @@ type Flow struct {
 	FlowKeyFor      string       `| ( @FlowKeyFor`
 	FlowExprFor     *ExprFor     `    @@)`
 	FlowKeyConst    string       `| ( @FlowKeyConst`
-	FlowConst       []*Const     `    (@@ ","?)+)`
+	FlowConst       []*Const     `    @@ ("," @@)*)`
 	FlowKeyExpr     string       `| ( @FlowKeyExpr`
 	FlowExpr        *Expr        `    @@))`
 
@@ -396,7 +396,7 @@ func (p Primary) String() string {
 		}
 		return p.Const.String() + args
 	} else {
-		return p.SubExpr.String()
+		return "(" + p.SubExpr.String() + ")"
 	}
 }
 
