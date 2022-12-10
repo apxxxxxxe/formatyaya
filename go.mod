@@ -1,4 +1,4 @@
-module github.com/apxxxxxxe/parsertest
+module github.com/apxxxxxxe/formatyaya
 
 go 1.19
 
