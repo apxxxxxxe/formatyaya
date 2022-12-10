@@ -160,11 +160,15 @@ func (f FuncEntity) String() string {
 	} else if f.Value != nil {
 		result = f.PreValue + f.Value.String()
 	} else {
-		lines := ""
-		for _, s := range f.Sub {
-			lines += s.String() + "\n"
+		if len(f.Sub) == 0 {
+			result = "{\n}"
+		} else {
+			lines := ""
+			for _, s := range f.Sub {
+				lines += s.String() + "\n"
+			}
+			result = "{\n" + addIndent(lines) + "}"
 		}
-		result = "{\n" + addIndent(lines) + "}"
 	}
 	return comments + result
 }
@@ -208,11 +212,15 @@ func (f Flow) String() string {
 	if f.FlowOneLineSub != nil {
 		lower = "\n" + addIndent(f.FlowOneLineSub.String())
 	} else {
-		lower = ""
-		for _, f := range f.FlowMultiLineSub {
-			lower += f.String() + "\n"
+		if len(f.FlowMultiLineSub) == 0 {
+			lower = " {\n}"
+		} else {
+			lower = ""
+			for _, f := range f.FlowMultiLineSub {
+				lower += f.String() + "\n"
+			}
+			lower = " {\n" + addIndent(lower) + "}"
 		}
-		lower = " {\n" + addIndent(lower) + "}"
 	}
 
 	return upper + lower
