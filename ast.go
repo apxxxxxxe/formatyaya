@@ -7,12 +7,13 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
-const indent = "  "
-
-var repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
+var (
+	Indent       = "  "
+	repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
+)
 
 func addIndent(s string) string {
-	res := indent + strings.TrimRight(strings.ReplaceAll(s, "\n", "\n"+indent), indent)
+	res := Indent + strings.TrimRight(strings.ReplaceAll(s, "\n", "\n"+Indent), Indent)
 	res = repBlankLine.ReplaceAllString(res, "")
 	return res
 }
