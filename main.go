@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -30,11 +29,11 @@ func parse(filename string) *Root {
 
 	actual, err := parser.ParseString("", string(src))
 	if err != nil {
-		repr.Println(actual)
-		fmt.Println("NG:", filename)
+		log.Println(repr.String(actual))
+		log.Println("NG:", filename)
 		log.Fatal(err)
 	} else {
-		fmt.Println("OK:", filename)
+		log.Println("OK:", filename)
 	}
 
 	return actual
