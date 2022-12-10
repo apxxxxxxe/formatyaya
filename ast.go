@@ -1,6 +1,7 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/alecthomas/participle/v2/lexer"
@@ -8,8 +9,12 @@ import (
 
 const indent = "  "
 
+var repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
+
 func addIndent(s string) string {
-	return indent + strings.TrimRight(strings.ReplaceAll(s, "\n", "\n"+indent), indent)
+	res := indent + strings.TrimRight(strings.ReplaceAll(s, "\n", "\n"+indent), indent)
+	res = repBlankLine.ReplaceAllString(res, "")
+	return res
 }
 
 type Root struct {
