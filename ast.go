@@ -141,12 +141,26 @@ type FuncEntity struct {
 func (f FuncEntity) String() string {
 	comments := ""
 	isInSub := false
+	isInFlowOneLine := false
+	isInFlowPre := false
 	for _, t := range f.Tokens {
-		if dict[t.Type] == "Function" {
+		switch dict[t.Type] {
+		case "Function":
 			isInSub = true
-		} else if dict[t.Type] == "FuncEnd" {
+		case "FuncEnd":
 			isInSub = false
-		} else if !isInSub {
+		case "LF", "ExprEnd":
+			isInFlowOneLine = false
+		case "FlowKey", "FlowKeyFor", "FlowKeyForEach", "FlowKeyConst", "FlowKeyExpr":
+			isInFlowPre = true
+		}
+
+		if isInFlowPre && (dict[t.Type] == "ExprEnd" || dict[t.Type] == "LF") {
+			isInFlowOneLine = true
+			isInFlowPre = false
+		}
+
+		if !isInFlowOneLine && !isInSub {
 			if dict[t.Type] == "CommentOneLine" {
 				comments += t.Value + "\n"
 			} else if dict[t.Type] == "CommentMultiLine" {
@@ -191,7 +205,7 @@ type Flow struct {
 	FlowExpr        *Expr        `    @@))`
 
 	FlowMultiLineSub []*FuncEntity `( "{" @@* "}"`
-	FlowOneLineSub   *FuncEntity   `| ";"? @@)`
+	FlowOneLineSub   *FuncEntity   `| ("\n"|";") @@)`
 }
 
 func (f Flow) String() string {
