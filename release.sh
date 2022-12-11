@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 version="v$(grep version main.go | grep -oE '[0-9]\.[0-9]\.[0-9]')"
 if [ $? -eq 1 ]; then
@@ -15,4 +15,4 @@ fi
 
 make
 
-ghr "${version}" out/
+ghr -prerelease "${version}" out/
