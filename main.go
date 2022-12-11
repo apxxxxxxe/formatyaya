@@ -12,6 +12,8 @@ import (
 	"github.com/alecthomas/repr"
 )
 
+const version = "0.1.0"
+
 var (
 	repSlash         = regexp.MustCompile(`([^*])/\n[\t ]*`)
 	repLF            = regexp.MustCompile(`(\r\n|\r)`)
