@@ -12,7 +12,7 @@ import (
 const dirname = "ghost"
 const destDir = "out"
 
-func findFilesWithWalkDir(root, ext string) ([]string, error) {
+func findFiles(root string, exts []string) ([]string, error) {
 	findList := []string{}
 
 	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
@@ -24,7 +24,7 @@ func findFilesWithWalkDir(root, ext string) ([]string, error) {
 			return nil
 		}
 
-		if !strings.HasSuffix(path, ext) {
+		if err := validateExt(info.Name(), exts); err != nil {
 			return nil
 		}
 
@@ -35,7 +35,7 @@ func findFilesWithWalkDir(root, ext string) ([]string, error) {
 }
 
 func TestMain(*testing.T) {
-	files, err := findFilesWithWalkDir(dirname, "dic")
+	files, err := findFiles(dirname, []string{"dic", "aym"})
 	if err != nil {
 		panic(err)
 	}
