@@ -12,12 +12,13 @@ import (
 	"github.com/alecthomas/repr"
 )
 
-const version = "0.1.0"
+const version = "0.1.1"
 
 var (
 	repSlash         = regexp.MustCompile(`([^*])/\n[\t ]*`)
 	repLF            = regexp.MustCompile(`(\r\n|\r)`)
 	repTrailingSpace = regexp.MustCompile(`[\t ]+\n`)
+	repEdgeLF        = regexp.MustCompile(`(^\n+|\n+$)`)
 )
 
 func parse(filename string) *Root {
@@ -88,13 +89,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	parsedString := repEdgeLF.ReplaceAllString(parse(file).String(), "")
+
 	if inPlace {
-		if err := os.WriteFile(file, []byte(parse(file).String()), 0644); err != nil {
+		if err := os.WriteFile(file, []byte(parsedString), 0644); err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}
 	} else {
-		fmt.Println(parsed)
+		fmt.Println(parsedString)
 	}
 
 	os.Exit(0)
