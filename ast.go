@@ -18,6 +18,22 @@ func addIndent(s string) string {
 	return res
 }
 
+// 記述の半角スペースを削除する(ただし文字列内のスペースはそのまま)
+func deleteSpace(str string) string {
+	result := ""
+	isinQuotes := false
+	for _, s := range str {
+		if s == '\'' || s == '"' {
+			isinQuotes = !isinQuotes
+		}
+
+		if isinQuotes || s != ' ' {
+			result += string(s)
+		}
+	}
+	return result
+}
+
 type Root struct {
 	Rootentities []*RootEntity `@@*`
 }
@@ -258,7 +274,7 @@ type ExprFor struct {
 }
 
 func (e ExprFor) String() string {
-	return strings.ReplaceAll(e.ForInitAsign.String(), " ", "") + "; " + strings.ReplaceAll(e.ForEndExpr.String(), " ", "") + "; " + e.ForLoopAsign.String()
+	return deleteSpace(e.ForInitAsign.String()) + "; " + deleteSpace(e.ForEndExpr.String()) + "; " + e.ForLoopAsign.String()
 }
 
 type ExprForEach struct {
@@ -461,7 +477,7 @@ func (f FuncCall) String() string {
 	args := ""
 	if f.FuncArgs != nil {
 		for _, a := range strings.Split(f.FuncArgs.String(), ", ") {
-			args += strings.ReplaceAll(a, " ", "") + ", "
+			args += deleteSpace(a) + ", "
 		}
 		args = strings.TrimRight(args, ", ")
 	}
