@@ -22,12 +22,25 @@ var (
 	repDoubleBlankLine = regexp.MustCompile(`(?m)(^[\t ]*\n){2}`)
 )
 
-func parse(filename string) *Root {
-	b, err := os.ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
+const (
+	hasCRLF = iota
+	hasCR
+	hasLF
+)
 
+func identifyCRLF(s string) int {
+	if crlf := strings.Contains(s, "\r\n"); crlf {
+		return hasCRLF
+	} else if cr := strings.Contains(s, "\r"); cr {
+		return hasCR
+	} else if lf := strings.Contains(s, "\n"); lf {
+		return hasLF
+	} else {
+		return hasCRLF
+	}
+}
+
+func parse(b []byte) *Root {
 	// 改行コードの統一
 	src := repLF.ReplaceAllString(string(b), "\n")
 	// 行末の空白文字を削除
@@ -85,13 +98,27 @@ func main() {
 		Indent = "	"
 	}
 
-	parsed := parse(file)
+	b, err := os.ReadFile(file)
+	if err != nil {
+		panic(err)
+	}
+
+	lfCode := identifyCRLF(string(b))
+
+	parsed := parse(b)
 	if parsed == nil {
 		os.Exit(1)
 	}
 
-	parsedString := repEdgeLF.ReplaceAllString(parse(file).String(), "")
+	parsedString := repEdgeLF.ReplaceAllString(parsed.String(), "")
 	parsedString = repDoubleBlankLine.ReplaceAllString(parsedString, "\n")
+
+	lfDict := map[int]string{
+		hasCRLF: "\r\n",
+		hasCR:   "\r",
+		hasLF:   "\n",
+	}
+	parsedString = strings.ReplaceAll(parsedString, "\n", lfDict[lfCode])
 
 	if inPlace {
 		if err := os.WriteFile(file, []byte(parsedString), 0644); err != nil {
