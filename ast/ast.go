@@ -174,7 +174,7 @@ func (f FuncEntity) String() string {
 			isInFlowPre = true
 		}
 
-		if isInFlowPre && (dict[t.Type] == "ExprEnd" || dict[t.Type] == "LF") {
+		if isInFlowPre && (dict[t.Type] == "ExprEnd" || dict[t.Type] == "LF" || dict[t.Type] == "BlankLine") {
 			isInFlowOneLine = true
 			isInFlowPre = false
 		}
