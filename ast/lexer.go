@@ -1,4 +1,4 @@
-package main
+package ast
 
 import (
 	"github.com/alecthomas/participle/v2"
@@ -85,7 +85,7 @@ var (
 			{Name: "CommentMultiLine", Pattern: `(?sU)/\*.*\*/`, Action: nil},
 		},
 	})
-	parser = participle.MustBuild[Root](
+	Parser = participle.MustBuild[Root](
 		participle.Lexer(def),
 		participle.Elide("Space", "TabSpace", "BlankLine", "LF", "CommentOneLine", "CommentMultiLine"),
 	)
@@ -93,7 +93,7 @@ var (
 )
 
 func makeDict() TokenDict {
-	symbols := parser.Lexer().Symbols()
+	symbols := Parser.Lexer().Symbols()
 	dict := TokenDict{}
 	for k, v := range symbols {
 		dict[v] = k

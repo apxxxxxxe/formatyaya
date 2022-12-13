@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/alecthomas/repr"
+
+	"github.com/apxxxxxxe/formatyaya/ast"
 )
 
 const version = "0.1.2"
@@ -40,7 +42,7 @@ func identifyCRLF(s string) int {
 	}
 }
 
-func parse(b []byte) *Root {
+func parse(b []byte) *ast.Root {
 	// 改行コードの統一
 	src := repLF.ReplaceAllString(string(b), "\n")
 	// 行末の空白文字を削除
@@ -48,7 +50,7 @@ func parse(b []byte) *Root {
 	// 行末のスラッシュ(次行との連結)を処理
 	src = repSlash.ReplaceAllString(src, "$1")
 
-	actual, err := parser.ParseString("", string(src))
+	actual, err := ast.Parser.ParseString("", string(src))
 	if err != nil {
 		log.Println(repr.String(actual))
 		log.Println(err)
@@ -93,9 +95,9 @@ func main() {
 	}
 
 	if useSpace {
-		Indent = strings.Repeat(" ", spaceCount)
+		ast.Indent = strings.Repeat(" ", spaceCount)
 	} else {
-		Indent = "	"
+		ast.Indent = "	"
 	}
 
 	b, err := os.ReadFile(file)

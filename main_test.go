@@ -49,7 +49,12 @@ func TestMain(*testing.T) {
 			panic(err)
 		}
 
-		if err := os.WriteFile(dest, []byte(parse(src).String()), 0644); err != nil {
+		b, err := os.ReadFile(src)
+		if err != nil {
+			panic(err)
+		}
+
+		if err := os.WriteFile(dest, []byte(parse(b).String()), 0644); err != nil {
 			panic(err)
 		}
 	}
