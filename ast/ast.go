@@ -12,30 +12,9 @@ var (
 	repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
 )
 
-func addIndent(str string) string {
-	res := ""
-	isInHearDocument := false
-	words := strings.Split(str, "")
-	for i := 0; i < len(words); i++ {
-		if i+3 < len(words)-1 {
-			switch str[i : i+3] {
-			case "<<'", "<<\"":
-				isInHearDocument = true
-			case "'>>", "\">>":
-				isInHearDocument = false
-			}
-		}
-
-		if !isInHearDocument && words[i] == "\n" {
-			res += "\n" + Indent
-		} else {
-			res += string(words[i])
-		}
-	}
-
-	res = Indent + strings.TrimRight(res, Indent)
+func addIndent(s string) string {
+	res := Indent + strings.TrimRight(strings.ReplaceAll(s, "\n", "\n"+Indent), Indent)
 	res = repBlankLine.ReplaceAllString(res, "")
-
 	return res
 }
 
