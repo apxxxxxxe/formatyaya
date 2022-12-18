@@ -109,7 +109,7 @@ func main() {
 
 	parsed := parse(b)
 	if parsed == nil {
-		os.Exit(1)
+		os.Exit(3)
 	}
 
 	parsedString := repEdgeLF.ReplaceAllString(parsed.String(), "")
