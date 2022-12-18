@@ -10,6 +10,7 @@ import (
 var (
 	Indent       = "  "
 	repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
+	repIndents   = regexp.MustCompile(`(?m)^[\t ]+`)
 )
 
 func addIndent(s string) string {
@@ -463,7 +464,10 @@ type String struct {
 }
 
 func (s String) String() string {
-	return s.SingleQuote + s.DoubleQuote + s.HearDocumentSingle + s.HearDocumentDouble
+	return s.SingleQuote +
+		s.DoubleQuote +
+		repIndents.ReplaceAllString(s.HearDocumentSingle, "") +
+		repIndents.ReplaceAllString(s.HearDocumentDouble, "")
 }
 
 type FuncCall struct {
