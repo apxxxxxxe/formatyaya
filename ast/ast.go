@@ -464,10 +464,19 @@ type String struct {
 }
 
 func (s String) String() string {
-	return s.SingleQuote +
-		s.DoubleQuote +
-		repIndents.ReplaceAllString(s.HearDocumentSingle, "") +
-		repIndents.ReplaceAllString(s.HearDocumentDouble, "")
+	if s.SingleQuote != "" {
+		return s.SingleQuote
+	} else if s.DoubleQuote != "" {
+		if !strings.Contains(s.DoubleQuote, "%(") {
+			return "'" + strings.Trim(s.DoubleQuote, "\"") + "'"
+		} else {
+			return s.DoubleQuote
+		}
+	} else if s.HearDocumentSingle != "" {
+		return repIndents.ReplaceAllString(s.HearDocumentSingle, "")
+	} else {
+		return repIndents.ReplaceAllString(s.HearDocumentDouble, "")
+	}
 }
 
 type FuncCall struct {
