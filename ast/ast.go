@@ -467,7 +467,7 @@ func (s String) String() string {
 	if s.SingleQuote != "" {
 		return s.SingleQuote
 	} else if s.DoubleQuote != "" {
-		if !strings.Contains(s.DoubleQuote, "%(") {
+		if !strings.Contains(s.DoubleQuote, "%") {
 			return "'" + strings.Trim(s.DoubleQuote, "\"") + "'"
 		} else {
 			return s.DoubleQuote
