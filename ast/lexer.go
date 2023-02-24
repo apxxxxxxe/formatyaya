@@ -11,6 +11,7 @@ var (
 	def = lexer.MustStateful(lexer.Rules{
 		"Root": { // Rootは特別な名前　これが基点のRule
 			{Name: "BlankLine", Pattern: `\n[\t ]*\n`, Action: nil},
+			{Name: "Slash", Pattern: `/\n`, Action: nil},
 			{Name: "LF", Pattern: `\n`, Action: nil},
 			{Name: `Space`, Pattern: ` +`, Action: nil},
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
@@ -35,6 +36,7 @@ var (
 			{Name: `ExprEnd`, Pattern: `;`, Action: nil},
 			{Name: `OutputFixer`, Pattern: `--`, Action: nil},
 			{Name: "BlankLine", Pattern: `\n[\t ]*\n`, Action: nil},
+			{Name: "Slash", Pattern: `/\n`, Action: nil},
 			{Name: "LF", Pattern: `\n`, Action: nil},
 			lexer.Include("Comments"),
 			{Name: "SingleQuoteString", Pattern: `'`, Action: lexer.Push("SingleQuoteStringRule")},
@@ -87,7 +89,7 @@ var (
 	})
 	Parser = participle.MustBuild[Root](
 		participle.Lexer(def),
-		participle.Elide("Space", "TabSpace", "BlankLine", "LF", "CommentOneLine", "CommentMultiLine"),
+		participle.Elide("Space", "TabSpace", "BlankLine", "LF", "CommentOneLine", "CommentMultiLine", "Slash"),
 	)
 	dict = makeDict()
 )

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	Indent       = "  "
+	Indent       string
 	repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
 	repIndents   = regexp.MustCompile(`(?m)^[\t ]+`)
 )
@@ -300,13 +300,18 @@ type Enum struct {
 	Asign *Asign `@@`
 
 	OperEnum string `( @","`
+	Slash    string `  @Slash?`
 	Right    *Enum  `  @@)?`
 }
 
 func (e Enum) String() string {
 	right := ""
 	if e.Right != nil {
-		right = e.OperEnum + " " + e.Right.String()
+		space := " "
+		if e.Slash != "" {
+			space += e.Slash + Indent
+		}
+		right = e.OperEnum + space + e.Right.String()
 	}
 	return e.Asign.String() + right
 }
@@ -316,13 +321,18 @@ type Asign struct {
 	Or *Or `@@`
 
 	OperAsign string `( @OperAsign`
+	Slash     string `  @Slash?`
 	Right     *Asign `  @@)?`
 }
 
 func (a Asign) String() string {
 	right := ""
 	if a.Right != nil {
-		right = " " + a.OperAsign + " " + a.Right.String()
+		space := " "
+		if a.Slash != "" {
+			space += a.Slash + Indent
+		}
+		right = " " + a.OperAsign + space + a.Right.String()
 	}
 	return a.Or.String() + right
 }
@@ -332,13 +342,18 @@ type Or struct {
 	And *And `@@`
 
 	OperOr string `( @"||"`
+	Slash  string `  @Slash?`
 	Right  *Or    `  @@)?`
 }
 
 func (o Or) String() string {
 	right := ""
 	if o.Right != nil {
-		right = " " + o.OperOr + " " + o.Right.String()
+		space := " "
+		if o.Slash != "" {
+			space += o.Slash + Indent
+		}
+		right = " " + o.OperOr + space + o.Right.String()
 	}
 	return o.And.String() + right
 }
@@ -348,13 +363,18 @@ type And struct {
 	Comparison *Comparison `@@`
 
 	OperAnd string `( @"&&"`
+	Slash   string `  @Slash?`
 	Right   *And   `  @@)?`
 }
 
 func (a And) String() string {
 	right := ""
 	if a.Right != nil {
-		right = " " + a.OperAnd + " " + a.Right.String()
+		space := " "
+		if a.Slash != "" {
+			space += a.Slash + Indent
+		}
+		right = " " + a.OperAnd + space + a.Right.String()
 	}
 	return a.Comparison.String() + right
 }
@@ -364,13 +384,18 @@ type Comparison struct {
 	Addition *Addition `@@`
 
 	OperComp string      `( @("=" "="|"!""="|">="|"<="|">"|"<"|"_in_"|"!""_in_")`
+	Slash    string      `  @Slash?`
 	Right    *Comparison `  @@)?`
 }
 
 func (c Comparison) String() string {
 	right := ""
 	if c.Right != nil {
-		right = " " + c.OperComp + " " + c.Right.String()
+		space := " "
+		if c.Slash != "" {
+			space += c.Slash + Indent
+		}
+		right = " " + c.OperComp + space + c.Right.String()
 	}
 	return c.Addition.String() + right
 }
@@ -380,13 +405,18 @@ type Addition struct {
 	Multipulation *Multipulation `@@`
 
 	OperAdd string    `( @("+"|"-")`
+	Slash   string    `  @Slash?`
 	Right   *Addition `  @@)?`
 }
 
 func (a Addition) String() string {
 	right := ""
 	if a.Right != nil {
-		right = " " + a.OperAdd + " " + a.Right.String()
+		space := " "
+		if a.Slash != "" {
+			space += a.Slash + Indent
+		}
+		right = " " + a.OperAdd + space + a.Right.String()
 	}
 	return a.Multipulation.String() + right
 }
@@ -396,13 +426,18 @@ type Multipulation struct {
 	Unary *Unary `@@`
 
 	OperMulti string         `( @("*"|"/"|"%")`
+	Slash     string         `  @Slash?`
 	Right     *Multipulation `  @@)?`
 }
 
 func (m Multipulation) String() string {
 	right := ""
 	if m.Right != nil {
-		right = " " + m.OperMulti + " " + m.Right.String()
+		space := " "
+		if m.Slash != "" {
+			space += m.Slash + Indent
+		}
+		right = " " + m.OperMulti + space + m.Right.String()
 	}
 	return m.Unary.String() + right
 }
@@ -420,21 +455,61 @@ func (u Unary) String() string {
 
 // 単項: 左辺と右辺の両方になりうる式
 type Primary struct {
-	Const     *Const  `( @@`
-	ArrayArgs []*Expr `  ("[" @@ "]")*`
-	SubExpr   *Expr   `| "(" @@ ")")`
+	Const     *Const      `( @@`
+	ArrayArgs []*ArrayArg `  @@*`
+	SubExpr   *SubExpr    `| @@)`
 }
 
 func (p Primary) String() string {
 	if p.Const != nil {
 		args := ""
-		for _, e := range p.ArrayArgs {
-			args += "[" + e.String() + "]"
+		for _, a := range p.ArrayArgs {
+			args += a.String()
 		}
 		return p.Const.String() + args
 	} else {
-		return "(" + p.SubExpr.String() + ")"
+		return p.SubExpr.String()
 	}
+}
+
+type ArrayArg struct {
+	Start      string `"["`
+	StartSlash string `@Slash?`
+	Expr       *Expr  `@@`
+	EndSlash   string `@Slash?`
+	End        string `"]"`
+}
+
+func (a ArrayArg) String() string {
+	start := a.StartSlash
+	if start != "" {
+		start = " " + start + Indent
+	}
+	end := a.EndSlash
+	if end != "" {
+		end = " " + end
+	}
+	return "[" + start + a.Expr.String() + end + "]"
+}
+
+type SubExpr struct {
+	Start      string `"("`
+	StartSlash string `@Slash?`
+	Expr       *Expr  `@@`
+	EndSlash   string `@Slash?`
+	End        string `")"`
+}
+
+func (s SubExpr) String() string {
+	start := s.StartSlash
+	if start != "" {
+		start = " " + start + Indent
+	}
+	end := s.EndSlash
+	if end != "" {
+		end = " " + end
+	}
+	return "(" + start + s.Expr.String() + end + ")"
 }
 
 type Const struct {
@@ -480,23 +555,41 @@ func (s String) String() string {
 }
 
 type FuncCall struct {
-	FuncName string `@Ident`
-	FuncArgs *Expr  `"(" @@? ")"`
+	FuncName string    `@Ident`
+	FuncExpr *FuncExpr `@@`
 }
 
 func (f FuncCall) String() string {
-	result := f.FuncName + "("
+	return f.FuncName + f.FuncExpr.String()
+}
 
-	args := ""
-	if f.FuncArgs != nil {
-		for _, a := range strings.Split(f.FuncArgs.String(), ", ") {
-			args += deleteSpace(a) + ", "
-		}
-		args = strings.TrimRight(args, ", ")
+type FuncExpr struct {
+	Start      string `"("`
+	StartSlash string `@Slash?`
+	Expr       *Expr  `@@?`
+	EndSlash   string `@Slash?`
+	End        string `")"`
+}
+
+func (f FuncExpr) String() string {
+	start := f.StartSlash
+	if start != "" {
+		start = " " + start + Indent
 	}
-
-	result += args + ")"
-	return result
+	expr := ""
+	if f.Expr != nil {
+		tmpIndent := "\t"
+		exprBase := strings.ReplaceAll(f.Expr.String(), Indent, tmpIndent)
+		for _, a := range strings.Split(exprBase, ", ") {
+			expr += deleteSpace(a) + ", "
+		}
+		expr = strings.ReplaceAll(strings.TrimRight(expr, ", "), tmpIndent, Indent)
+	}
+	end := f.EndSlash
+	if end != "" {
+		end = " " + end
+	}
+	return "(" + start + expr + end + ")"
 }
 
 // 目的はパースなのでstringでとっていい

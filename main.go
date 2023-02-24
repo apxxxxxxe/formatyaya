@@ -17,7 +17,6 @@ import (
 const version = "0.1.2"
 
 var (
-	repSlash           = regexp.MustCompile(`([^*])/\n[\t ]*`)
 	repLF              = regexp.MustCompile(`(\r\n|\r)`)
 	repTrailingSpace   = regexp.MustCompile(`[\t ]+\n`)
 	repEdgeLF          = regexp.MustCompile(`(^\n+|\n+$)`)
@@ -47,8 +46,6 @@ func parse(b []byte) *ast.Root {
 	src := repLF.ReplaceAllString(string(b), "\n")
 	// 行末の空白文字を削除
 	src = repTrailingSpace.ReplaceAllString(src, "\n")
-	// 行末のスラッシュ(次行との連結)を処理
-	src = repSlash.ReplaceAllString(src, "$1")
 
 	actual, err := ast.Parser.ParseString("", string(src))
 	if err != nil {
