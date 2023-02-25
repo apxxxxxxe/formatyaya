@@ -183,16 +183,16 @@ func (f FuncEntity) String() string {
 
 // フロー制御文
 type Flow struct {
-	FlowKey         string       `( @FlowKey`
-	FlowKeyForEach  string       `| ( @FlowKeyForEach`
-	FlowExprForEach *ExprForEach `    @@)`
-	FlowKeyFor      string       `| ( @FlowKeyFor`
-	FlowExprFor     *ExprFor     `    @@)`
-	FlowKeyConst    string       `| ( @FlowKeyConst`
-	FlowConst       []*Const     `    @@ ("," @@)*)`
-	FlowKeyExpr     string       `| ( @FlowKeyExpr`
-	FlowExpr        *Expr        `    @@))`
-
+	FlowKey          string        `( @FlowKey`
+	FlowKeyForEach   string        `| ( @FlowKeyForEach`
+	FlowExprForEach  *ExprForEach  `    @@)`
+	FlowKeyFor       string        `| ( @FlowKeyFor`
+	FlowExprFor      *ExprFor      `    @@)`
+	FlowKeyConst     string        `| ( @FlowKeyConst`
+	FlowConst        []*Const      `    @@ ("," @@)*)`
+	FlowKeyExpr      string        `| ( @FlowKeyExpr`
+	FlowExpr         *Expr         `    @@))`
+	BlankLine        []string      `BlankLine*`
 	FlowMultiLineSub []*FuncEntity `( "{" @@* "}"`
 	FlowOneLineSub   *FuncEntity   `| ("\n"|";") @@)`
 }
