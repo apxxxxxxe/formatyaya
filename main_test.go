@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-const dirname = "ghost"
+const dirname = "testdata"
 const destDir = "out"
 
 func findFiles(root string, exts []string) ([]string, error) {
@@ -20,11 +20,7 @@ func findFiles(root string, exts []string) ([]string, error) {
 			return err
 		}
 
-		if info.IsDir() {
-			return nil
-		}
-
-		if err := validateExt(info.Name(), exts); err != nil {
+		if err := validateExt(path, exts); err != nil {
 			return nil
 		}
 
@@ -40,7 +36,7 @@ func TestMain(*testing.T) {
 		panic(err)
 	}
 
-	fmt.Println(files)
+	fmt.Println("files:", files)
 
 	for _, src := range files {
 		dest := strings.Replace(src, dirname, destDir, 1)
@@ -54,6 +50,7 @@ func TestMain(*testing.T) {
 			panic(err)
 		}
 
+		fmt.Println(src)
 		if err := os.WriteFile(dest, []byte(parse(b).String()), 0644); err != nil {
 			panic(err)
 		}

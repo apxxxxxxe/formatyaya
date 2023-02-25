@@ -48,10 +48,10 @@ func (r Root) String() string {
 // Root内で出現しうる記述
 type RootEntity struct {
 	Definition   *Definition `(( @@ `
-	Function     *Func       ` | @@`
-	BlankLine    string      ` | @BlankLine)`
+	Function     *Func       ` | @@)`
 	CommentDep   *Comment    `   @@?)`
 	CommentIndep *Comment    `| @@`
+	BlankLine    string      `| @BlankLine`
 }
 
 func (r RootEntity) String() string {
@@ -61,7 +61,7 @@ func (r RootEntity) String() string {
 	} else if r.Function != nil {
 		result += r.Function.String()
 	} else if r.CommentIndep != nil {
-		result += r.CommentIndep.String()
+		result += r.CommentIndep.String() + "\n"
 	} else if r.BlankLine != "" {
 		result += "\n"
 	}
@@ -78,7 +78,7 @@ type Comment struct {
 }
 
 func (c Comment) String() string {
-	return c.CommentOneLine + c.CommentMultiLine + "\n"
+	return c.CommentOneLine + c.CommentMultiLine
 }
 
 type Definition struct {
@@ -142,16 +142,16 @@ type FuncEntity struct {
 	PreValue     string        ` | @PreValue?`
 	Value        *Expr         `   @@`
 	ValueEnd     string        `   ";"?`
-	Sub          []*FuncEntity ` | "{" @@* "}"`
-	BlankLine    string        ` | @BlankLine)`
+	Sub          []*FuncEntity ` | "{" @@* "}")`
 	CommentDep   *Comment      `   @@?)`
 	CommentIndep *Comment      `| @@`
+	BlankLine    string        `| @BlankLine`
 }
 
 func (f FuncEntity) String() string {
 	result := ""
 	if f.CommentIndep != nil {
-		result += f.CommentIndep.String() + "piyo"
+		result += f.CommentIndep.String()
 	} else if f.OutputFixer != "" {
 		result = f.OutputFixer
 	} else if f.Flow != nil {

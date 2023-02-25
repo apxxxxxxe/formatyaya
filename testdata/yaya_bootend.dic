@@ -1,0 +1,93 @@
+//******************************************************************************
+// YAYA　ゴーストテンプレート
+// 起動/終了トーク辞書
+//******************************************************************************
+
+OnFirstBoot {
+  OnBoot
+}
+
+//ゴーストのロード
+//起動毎の変数の初期化などはここで
+OnGhostLoad
+{
+  InitializeVariable
+}
+
+//******************************************************************************
+//通常の起動 OnBoot
+//******************************************************************************
+OnBoot
+{
+  GetProperties
+  --
+  InitialScripts
+  --
+  SetBalloonSurfaceSakura
+  --
+  _text = ""
+  if !isEvent1End {
+    "\![raise,OnEvent1_1]"
+	return
+  }
+  if ISVAR("hasSuicideInfo") && hasSuicideInfo {
+    _text = Dead
+  }
+  _text = Hello
+  InsertLineFeed(_text)
+}
+
+Dead
+{
+  _c = "φ、\_w[800]"
+  _p = "φ。\_w[1200]"
+
+  "\0\s[1411101]……。\1ドアを開けると、ハイネが首を吊っていた%(_p)\n\0\n\n(ぶちっ)。\1縄が切れ、彼女の体が鈍い音を立てて床に落ちる%(_p)\0\n\n……げほっ、けふっ。\n……h1111104ああ、%(username)。h1111204いらっしゃい。"
+  "\0\s[1411101]……。\1ドアを開けると、ハイネが倒れていた%(_p)\nぱっくりと裂けた首元を中心に、大きな血溜まりができている%(_p)\n\0\n\n(しゅわ、しゅわ)。\1血の池は見る間に蒸発し、" + FogHighlight("霧") + "へと変わっていく%(_p)\n首の傷は、時が巻き戻るようにふさがった%(_p)\0\n\n……はぁ。\n……h1111104ああ、%(username)。h1111204いらっしゃい。"
+}
+
+Hello
+{
+  _timeslot = GetTimeSlot
+  ShowTopic(_timeslot)
+  --
+  if _timeslot == "朝" {
+  }
+  elseif _timeslot == "昼" || _timeslot == "日中" {
+  }
+  elseif _timeslot == "夜" {
+  }
+  else {
+  }
+  'h1111204hello'
+}
+
+
+//******************************************************************************
+//終了 OnClose
+//******************************************************************************
+
+OnClose
+{
+  SetBalloonSurfaceSakura
+  --
+  InsertLineFeed(Bye)
+  --
+  "\-"
+}
+
+Bye
+{
+  _timeslot = GetTimeSlot
+  if _timeslot == "朝" {
+    if circadian_rhythm == "夜型" {
+    }
+  }
+  elseif _timeslot == "昼" || _timeslot == "日中" {
+  }
+  elseif _timeslot == "夜" {
+  }
+  else {
+  }
+  'h1111207bye\_w[1200]'
+}
