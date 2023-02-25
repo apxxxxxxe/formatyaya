@@ -89,7 +89,7 @@ var (
 	})
 	Parser = participle.MustBuild[Root](
 		participle.Lexer(def),
-		participle.Elide("Space", "TabSpace", "BlankLine", "LF", "CommentOneLine", "CommentMultiLine", "Slash"),
+		participle.Elide("Space", "TabSpace", "LF", "Slash"),
 	)
 	dict = makeDict()
 )

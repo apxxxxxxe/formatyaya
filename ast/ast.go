@@ -3,8 +3,6 @@ package ast
 import (
 	"regexp"
 	"strings"
-
-	"github.com/alecthomas/participle/v2/lexer"
 )
 
 var (
@@ -49,39 +47,29 @@ func (r Root) String() string {
 
 // Root内で出現しうる記述
 type RootEntity struct {
-	Tokens     []lexer.Token
-	Definition *Definition `( @@ `
-	Function   *Func       `| @@)`
+	Definition   *Definition `(( @@ `
+	Function     *Func       ` | @@`
+	BlankLine    string      ` | @BlankLine)`
+	CommentDep   *Comment    `   @@?)`
+	CommentIndep *Comment    `| @@`
 }
 
 func (r RootEntity) String() string {
-	comments := ""
-	inSub := 0
-	for _, t := range r.Tokens {
-		if dict[t.Type] == "Function" {
-			inSub++
-		} else if dict[t.Type] == "FuncEnd" {
-			inSub--
-		}
-
-		if inSub == 0 {
-			if dict[t.Type] == "CommentOneLine" {
-				comments += t.Value + "\n"
-			} else if dict[t.Type] == "CommentMultiLine" {
-				comments += t.Value + "\n"
-			} else if dict[t.Type] == "BlankLine" {
-				comments += "\n"
-			}
-		}
-	}
-
 	result := ""
 	if r.Definition != nil {
 		result += r.Definition.String() + "\n"
-	} else {
+	} else if r.Function != nil {
 		result += r.Function.String()
+	} else if r.CommentIndep != nil {
+		result += r.CommentIndep.String()
+	} else if r.BlankLine != "" {
+		result += "\n"
 	}
-	return comments + result
+	comment := ""
+	if r.CommentDep != nil {
+		comment = r.CommentDep.String()
+	}
+	return result + comment
 }
 
 type Comment struct {
@@ -90,7 +78,7 @@ type Comment struct {
 }
 
 func (c Comment) String() string {
-	return c.CommentOneLine + c.CommentMultiLine
+	return c.CommentOneLine + c.CommentMultiLine + "\n"
 }
 
 type Definition struct {
@@ -149,50 +137,22 @@ func (f Func) String() string {
 
 // Func内で出現しうる記述: 関数内に1行で取りうる式
 type FuncEntity struct {
-	Tokens      []lexer.Token
-	OutputFixer string        `( @"--"`
-	Flow        *Flow         `| @@`
-	PreValue    string        `| @PreValue?`
-	Value       *Expr         `  @@`
-	ValueEnd    string        `  ";"?`
-	Sub         []*FuncEntity `| "{" @@* "}")`
+	OutputFixer  string        `(( @"--"`
+	Flow         *Flow         ` | @@`
+	PreValue     string        ` | @PreValue?`
+	Value        *Expr         `   @@`
+	ValueEnd     string        `   ";"?`
+	Sub          []*FuncEntity ` | "{" @@* "}"`
+	BlankLine    string        ` | @BlankLine)`
+	CommentDep   *Comment      `   @@?)`
+	CommentIndep *Comment      `| @@`
 }
 
 func (f FuncEntity) String() string {
-	comments := ""
-	inSub := 0
-	isInFlowOneLine := false
-	isInFlowPre := false
-	for _, t := range f.Tokens {
-		switch dict[t.Type] {
-		case "Function":
-			inSub++
-		case "FuncEnd":
-			inSub--
-		case "LF", "ExprEnd":
-			isInFlowOneLine = false
-		case "FlowKey", "FlowKeyFor", "FlowKeyForEach", "FlowKeyConst", "FlowKeyExpr":
-			isInFlowPre = true
-		}
-
-		if isInFlowPre && (dict[t.Type] == "ExprEnd" || dict[t.Type] == "LF" || dict[t.Type] == "BlankLine") {
-			isInFlowOneLine = true
-			isInFlowPre = false
-		}
-
-		if !isInFlowOneLine && inSub == 0 {
-			if dict[t.Type] == "CommentOneLine" {
-				comments += t.Value + "\n"
-			} else if dict[t.Type] == "CommentMultiLine" {
-				comments += t.Value + "\n"
-			} else if dict[t.Type] == "BlankLine" {
-				comments += "\n"
-			}
-		}
-	}
-
 	result := ""
-	if f.OutputFixer != "" {
+	if f.CommentIndep != nil {
+		result += f.CommentIndep.String() + "piyo"
+	} else if f.OutputFixer != "" {
 		result = f.OutputFixer
 	} else if f.Flow != nil {
 		result = f.Flow.String()
@@ -201,6 +161,8 @@ func (f FuncEntity) String() string {
 			result = f.PreValue + " "
 		}
 		result += f.Value.String()
+	} else if f.BlankLine != "" {
+		result += "\n"
 	} else {
 		if len(f.Sub) == 0 {
 			result = "{\n}"
@@ -212,7 +174,11 @@ func (f FuncEntity) String() string {
 			result = "{\n" + addIndent(lines) + "}"
 		}
 	}
-	return comments + result
+	comment := ""
+	if f.CommentDep != nil {
+		comment = f.CommentDep.String()
+	}
+	return result + comment
 }
 
 // フロー制御文
