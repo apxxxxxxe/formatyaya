@@ -9,4 +9,4 @@ yayaのフォーマッタ
 *1 **非推奨です。** 現在は開発中であり、予期しない記述の削除などが起こる可能性があります。
 
 # Install
-```go install github.io/apxxxxxxe/formatyaya@latest```
+```go install github.com/apxxxxxxe/formatyaya@latest```
