@@ -143,7 +143,7 @@ type FuncEntity struct {
 	Value        *Expr         `   @@`
 	ValueEnd     string        `   ";"?`
 	Sub          []*FuncEntity ` | "{" @@* "}")`
-	CommentDep   *Comment      `   @@?)`
+	CommentDep   *Comment      `   ((?! LF) @@)?)`
 	CommentIndep *Comment      `| @@`
 	BlankLine    string        `| @BlankLine`
 }
@@ -176,7 +176,7 @@ func (f FuncEntity) String() string {
 	}
 	comment := ""
 	if f.CommentDep != nil {
-		comment = f.CommentDep.String()
+		comment = " " + f.CommentDep.String()
 	}
 	return result + comment
 }
