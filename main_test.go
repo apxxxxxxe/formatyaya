@@ -10,7 +10,7 @@ import (
 )
 
 const dirname = "testdata"
-const destDir = "out"
+const destDir = "test_out"
 
 func findFiles(root string, exts []string) ([]string, error) {
 	findList := []string{}
