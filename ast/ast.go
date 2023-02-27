@@ -9,6 +9,7 @@ var (
 	Indent       string
 	repBlankLine = regexp.MustCompile(`(?m)^[\t ]*$`)
 	repIndents   = regexp.MustCompile(`(?m)^[\t ]+`)
+	repSlash     = regexp.MustCompile(`/\n[\t ]*`)
 )
 
 func addIndent(s string) string {
@@ -506,12 +507,13 @@ type String struct {
 
 func (s String) String() string {
 	if s.SingleQuote != "" {
-		return s.SingleQuote
+		return repSlash.ReplaceAllString(s.SingleQuote, "/\n")
 	} else if s.DoubleQuote != "" {
-		if !strings.Contains(s.DoubleQuote, "%") {
-			return "'" + strings.Trim(s.DoubleQuote, "\"") + "'"
+		ret := repSlash.ReplaceAllString(s.DoubleQuote, "/\n")
+		if !strings.Contains(ret, "%") {
+			return "'" + strings.Trim(ret, "\"") + "'"
 		} else {
-			return s.DoubleQuote
+			return ret
 		}
 	} else if s.HearDocumentSingle != "" {
 		return repIndents.ReplaceAllString(s.HearDocumentSingle, "")
