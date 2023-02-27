@@ -79,7 +79,7 @@ type Comment struct {
 }
 
 func (c Comment) String() string {
-	return c.CommentOneLine + c.CommentMultiLine
+	return c.CommentOneLine + repIndents.ReplaceAllString(c.CommentMultiLine, "")
 }
 
 type Definition struct {
