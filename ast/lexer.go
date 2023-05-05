@@ -45,7 +45,7 @@ var (
 			{Name: "HearDocumentDouble", Pattern: `(?sU)<<".*">>`, Action: nil},
 			{Name: `OperAsign`, Pattern: `(=|:=|\+=|-=|\*=|/=|%=|\+:=|-:=|\*:=|/:=|%:=|,=)`, Action: nil},
 			{Name: `OperAsignUnary`, Pattern: `[^ 	](--|\+\+)`, Action: nil},
-			{Name: `OperUnary`, Pattern: `(!|-)`, Action: nil},
+			{Name: `OperUnary`, Pattern: `(!|-|&)`, Action: nil},
 			{Name: `OperCalc`, Pattern: `(-|\+|/|\*|%)`, Action: nil},
 			{Name: `OperComp`, Pattern: `(==|!=|>=|<=|>|<|_in_|!_in_)`, Action: nil},
 			{Name: `OperLogic`, Pattern: `(\|\||&&)`, Action: nil},

@@ -14,7 +14,7 @@ import (
 	"github.com/apxxxxxxe/formatyaya/ast"
 )
 
-const version = "0.1.2"
+const version = "0.1.3"
 
 var (
 	repLF              = regexp.MustCompile(`(\r\n|\r)`)
