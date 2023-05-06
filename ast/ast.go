@@ -329,7 +329,7 @@ func (o Or) String() string {
 type And struct {
 	Comparison *Comparison `@@`
 
-	OperAnd string `( @"&&"`
+	OperAnd string `( @("&" "&")`
 	Slash   string `  @Slash?`
 	Right   *And   `  @@)?`
 }
@@ -411,13 +411,14 @@ func (m Multipulation) String() string {
 
 // 単項演算式
 type Unary struct {
-	Unary       string   `(@OperUnary)?`
+	Unary       string   `( @("!"|"-")`
+	FeedBackOp  string   `| @"&")?`
 	Primary     *Primary `@@`
 	OperCalcOne string   `@((?! Space|TabSpace|LF|BlankLine) ("+" "+"|"--"))?`
 }
 
 func (u Unary) String() string {
-	return u.Unary + u.Primary.String() + u.OperCalcOne
+	return u.Unary + u.FeedBackOp + u.Primary.String() + u.OperCalcOne
 }
 
 // 単項: 左辺と右辺の両方になりうる式
