@@ -30,7 +30,7 @@ var (
 			{Name: `DefinitionTabChar`, Pattern: `[^\n\t]+	+[^\n\t]+`, Action: lexer.Pop()},
 		},
 		"FuncRule": {
-			{Name: `PreValue`, Pattern: `(void)`, Action: nil},
+			{Name: `PreValue`, Pattern: `(void|parallel)`, Action: nil},
 			{Name: `Space`, Pattern: ` +`, Action: nil},
 			{Name: `TabSpace`, Pattern: `	+`, Action: nil},
 			{Name: `ExprEnd`, Pattern: `;`, Action: nil},
