@@ -414,7 +414,7 @@ type Unary struct {
 	Unary       string   `( @("!"|"-")`
 	FeedBackOp  string   `| @"&")?`
 	Primary     *Primary `@@`
-	OperCalcOne string   `@((?! Space|TabSpace|LF|BlankLine) ("+" "+"|"--"))?`
+	OperCalcOne string   `@((?! Space|TabSpace|LF|BlankLine) (OperAsignUnary | "--"))?`
 }
 
 func (u Unary) String() string {
