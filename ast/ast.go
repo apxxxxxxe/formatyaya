@@ -511,7 +511,7 @@ func (s String) String() string {
 		return repSlash.ReplaceAllString(s.SingleQuote, "/\n")
 	} else if s.DoubleQuote != "" {
 		ret := repSlash.ReplaceAllString(s.DoubleQuote, "/\n")
-		if !strings.Contains(ret, "%") {
+		if !strings.Contains(ret, "%") && !strings.Contains(ret, "'") {
 			return "'" + strings.Trim(ret, "\"") + "'"
 		} else {
 			return ret
